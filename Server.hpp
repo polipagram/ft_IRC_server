@@ -9,6 +9,7 @@
 #include <iostream>
 #include <netinet/in.h>   
 #include <cstring> 
+#include <fcntl.h>
 
 class Server
 {

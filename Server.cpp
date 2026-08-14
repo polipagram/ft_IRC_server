@@ -20,6 +20,13 @@ void Server::open_socket()
 
     if (this->fd == -1)
         throw std::runtime_error("failed to open socket!");
+    
+    if (fcntl(this->fd, F_SETFL, O_NONBLOCK) == -1)
+    {
+        close(this->fd);
+        this->fd = -1;
+        throw std::runtime_error("fcntl failed!");
+    }
 }
 
 void Server::binding()
