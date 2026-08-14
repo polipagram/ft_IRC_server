@@ -1,11 +1,10 @@
 #include "Server.hpp"
 
-
-
 Server::Server(int port, const std::string &passwd) : fd(-1), port(port) , passwd(passwd)
 {
     open_socket();
     binding();
+    listening();
     std::cout << "socket ready to go !\n"; 
 }
 
@@ -20,7 +19,7 @@ void Server::open_socket()
     this->fd = socket(AF_INET, SOCK_STREAM, 0);
 
     if (this->fd == -1)
-        throw std::runtime_error("failed to open socket");
+        throw std::runtime_error("failed to open socket!");
 }
 
 void Server::binding()
@@ -35,7 +34,17 @@ void Server::binding()
     if (bind(this->fd, reinterpret_cast<sockaddr *>(&adr), sizeof(adr)) == -1)
     {
         close(this->fd);
-            this->fd = -1;
-        throw std::runtime_error("bind() failed");
+        this->fd = -1;
+        throw std::runtime_error("binding failed!");
+    }
+}
+
+void Server::listening()
+{
+    if (listen(this->fd, SOMAXCONN) == -1)
+    {
+        close(this->fd);
+        this->fd = -1;
+        throw std::runtime_error("listening failed!");
     }
 }

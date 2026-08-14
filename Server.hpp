@@ -19,6 +19,7 @@ class Server
 
         void open_socket();
         void binding();
+        void listening();
         
     public:
         Server(int port, const std::string& passwd);
