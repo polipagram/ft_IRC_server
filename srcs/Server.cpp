@@ -1,16 +1,16 @@
 #include "Server.hpp"
 
-Server::Server(int port, const std::string &passwd) : fd(-1), port(port) , passwd(passwd)
+Server::Server(int port, const std::string &passwd) : fd(-1), port(port), passwd(passwd)
 {
     open_socket();
     binding();
     listening();
-    std::cout << "socket ready to go !\n"; 
+    std::cout << "socket ready to go !\n";
 }
 
 Server::~Server()
 {
-    if(this->fd != -1)
+    if (this->fd != -1)
         close(fd);
 }
 
@@ -20,7 +20,7 @@ void Server::open_socket()
 
     if (this->fd == -1)
         throw std::runtime_error("failed to open socket!");
-    
+
     if (fcntl(this->fd, F_SETFL, O_NONBLOCK) == -1)
     {
         close(this->fd);
@@ -54,4 +54,11 @@ void Server::listening()
         this->fd = -1;
         throw std::runtime_error("listening failed!");
     }
+}
+
+// adam add
+
+std::string Server::getPass() const
+{
+    return this->passwd;
 }
