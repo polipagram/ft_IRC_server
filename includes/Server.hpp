@@ -25,7 +25,10 @@ class Server
         void binding();
         void listening();
         void poll_setup();
-        
+        void new_user();
+        bool    handle_user(size_t i);
+
+
         public:
             Server(int port, const std::string& passwd);
             ~Server();

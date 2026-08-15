@@ -70,6 +70,59 @@ void Server::poll_setup()
     this->fds.push_back(listen_socket);
 }
 
+void Server::new_user()
+{
+    int fd_client = accept(this->fd, NULL, NULL);
+
+    if (fd_client == -1)
+        return;
+
+    if (fcntl(fd_client, F_SETFL, O_NONBLOCK) == -1)
+    {
+        close(fd_client);
+        return;
+    }
+
+    struct pollfd client_poll;
+
+    client_poll.fd = fd_client;
+    client_poll.events = POLLIN;
+    client_poll.revents = 0;
+
+    this->fds.push_back(client_poll);
+
+    std::cout << "New client connected: " << fd_client << std::endl;
+}
+
+bool Server::handle_user(size_t i)
+{
+    char buffer[1024];
+
+    int bytes = recv(this->fds[i].fd, buffer, sizeof(buffer) - 1,0);
+
+    if (bytes > 0)
+    {
+        buffer[bytes] = '\0';
+
+        std::cout << "MSG from Client " << this->fds[i].fd << ": " << buffer << std::endl;
+        return false;
+    }
+
+    if (bytes == 0)
+    {
+        std::cout << "Client " << this->fds[i].fd <<  " disconnected" << std::endl;
+        close(this->fds[i].fd);
+        this->fds.erase(this->fds.begin() + i);
+        return true;
+    }
+
+    std::cerr << "recv failed on !" << this->fds[i].fd << std::endl;
+    close(this->fds[i].fd);
+    this->fds.erase(this->fds.begin() + i);
+
+    return true;
+}
+
 void   Server::launch()
 {
     while(true)
@@ -83,18 +136,12 @@ void   Server::launch()
                 continue;
             if(this->fds[i].fd == this->fd)
             {
-                int fd_client = accept(this->fd, NULL, NULL);
-                if(fd_client == -1)
-                    continue;
-                    
-                struct pollfd client_poll;
-
-                client_poll.fd = fd_client;
-                client_poll.events = POLLIN;
-                client_poll.revents = 0;
-
-                this->fds.push_back(client_poll);
-                
+                new_user();
+            }
+            else
+            {
+                if (handle_user(i))
+                    i--;
             }
         }
     }
