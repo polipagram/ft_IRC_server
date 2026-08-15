@@ -69,3 +69,33 @@ void Server::poll_setup()
 
     this->fds.push_back(listen_socket);
 }
+
+void   Server::launch()
+{
+    while(true)
+    {
+        int polling = poll(&this->fds[0], this->fds.size(), -1);
+        if(polling == -1)
+            throw std::runtime_error("poll fialed!");
+        for(size_t i = 0; i < this->fds.size() ; i++)
+        {
+            if(this->fds[i].revents == 0)
+                continue;
+            if(this->fds[i].fd == this->fd)
+            {
+                int fd_client = accept(this->fd, NULL, NULL);
+                if(fd_client == -1)
+                    continue;
+                    
+                struct pollfd client_poll;
+
+                client_poll.fd = fd_client;
+                client_poll.events = POLLIN;
+                client_poll.revents = 0;
+
+                this->fds.push_back(client_poll);
+                
+            }
+        }
+    }
+}

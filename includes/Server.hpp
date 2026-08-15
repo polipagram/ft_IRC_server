@@ -29,6 +29,8 @@ class Server
         public:
             Server(int port, const std::string& passwd);
             ~Server();
+            void launch();
+
 };
 
 #endif

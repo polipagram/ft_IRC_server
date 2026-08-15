@@ -11,6 +11,8 @@ int main(int ac, char **av)
     try
     {
         Server server(std::atoi(av[1]), av[2]);
+
+        server.launch();
     }
     catch (const std::exception &e)
     {
