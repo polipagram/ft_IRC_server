@@ -2,9 +2,12 @@
 
 Server::Server(int port, const std::string &passwd) : fd(-1), port(port) , passwd(passwd)
 {
+    if (this->port < 1 || this->port > 65535)
+        throw std::runtime_error("invalid port!");
     open_socket();
     binding();
     listening();
+    poll_setup();
     std::cout << "socket ready to go !\n"; 
 }
 
@@ -54,4 +57,15 @@ void Server::listening()
         this->fd = -1;
         throw std::runtime_error("listening failed!");
     }
+}
+
+void Server::poll_setup()
+{
+    struct pollfd listen_socket;
+
+    listen_socket.fd = this->fd;
+    listen_socket.events = POLLIN;
+    listen_socket.revents = 0;
+
+    this->fds.push_back(listen_socket);
 }

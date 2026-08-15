@@ -10,6 +10,8 @@
 #include <netinet/in.h>   
 #include <cstring> 
 #include <fcntl.h>
+#include <vector>
+#include <poll.h>
 
 class Server
 {
@@ -17,14 +19,16 @@ class Server
         int         fd;
         int         port;
         std::string passwd;
+        std::vector<struct pollfd>  fds;
 
         void open_socket();
         void binding();
         void listening();
+        void poll_setup();
         
-    public:
-        Server(int port, const std::string& passwd);
-        ~Server();
+        public:
+            Server(int port, const std::string& passwd);
+            ~Server();
 };
 
 #endif
