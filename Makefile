@@ -2,7 +2,7 @@ CC = c++
 
 FLAGS = -Wall -Wextra -Werror -std=c++98
 
-SRCS = srcs/Server.cpp main.cpp
+SRCS = srcs/Server.cpp main.cpp srcs/Client.cpp
 
 OBJS = $(SRCS:.cpp=.o)
 

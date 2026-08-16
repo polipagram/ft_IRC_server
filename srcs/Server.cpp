@@ -43,6 +43,9 @@ void Server::binding()
 
     if (bind(this->fd, reinterpret_cast<sockaddr *>(&adr), sizeof(adr)) == -1)
     {
+         std::cerr << "bind failed: "
+              << std::strerror(errno)
+              << std::endl;
         close(this->fd);
         this->fd = -1;
         throw std::runtime_error("binding failed!");
@@ -90,8 +93,24 @@ void Server::new_user()
     client_poll.revents = 0;
 
     this->fds.push_back(client_poll);
+    this->clients.push_back(Client(fd_client));
 
     std::cout << "New client connected: " << fd_client << std::endl;
+}
+
+void Server::extract_msg(size_t i)
+{
+    std::string& buffer = this->clients[i].get_buff();
+
+    size_t pos;
+
+    while ((pos = buffer.find("\n")) != std::string::npos)
+    {
+        std::string msg = buffer.substr(0, pos);
+        buffer.erase(0, pos + 1);
+
+        std::cout << "MSG from Client " << this->fds[i].fd << " : " << msg << std::endl;
+    }
 }
 
 bool Server::handle_user(size_t i)
@@ -102,9 +121,8 @@ bool Server::handle_user(size_t i)
 
     if (bytes > 0)
     {
-        buffer[bytes] = '\0';
-
-        std::cout << "MSG from Client " << this->fds[i].fd << ": " << buffer << std::endl;
+        this->clients[i].append_buff(std::string(buffer, bytes));
+        extract_msg(i);
         return false;
     }
 
@@ -113,12 +131,14 @@ bool Server::handle_user(size_t i)
         std::cout << "Client " << this->fds[i].fd <<  " disconnected" << std::endl;
         close(this->fds[i].fd);
         this->fds.erase(this->fds.begin() + i);
+        this->clients.erase(this->clients.begin() + i);
         return true;
     }
 
     std::cerr << "recv failed on !" << this->fds[i].fd << std::endl;
     close(this->fds[i].fd);
     this->fds.erase(this->fds.begin() + i);
+    this->clients.erase(this->clients.begin() + i);
 
     return true;
 }

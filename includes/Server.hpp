@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <poll.h>
+#include "Client.hpp"
 
 class Server
 {
@@ -20,6 +21,7 @@ class Server
         int         port;
         std::string passwd;
         std::vector<struct pollfd>  fds;
+        std::vector<Client>         clients;
 
         void open_socket();
         void binding();
@@ -27,6 +29,8 @@ class Server
         void poll_setup();
         void new_user();
         bool    handle_user(size_t i);
+        void   extract_msg(size_t i);
+
 
 
         public:
