@@ -37,6 +37,8 @@ class Server
             Server(int port, const std::string& passwd);
             ~Server();
             void launch();
+            bool existing_nick(const std::string& nickname) const;
+
 
 };
 

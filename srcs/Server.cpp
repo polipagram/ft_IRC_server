@@ -104,7 +104,7 @@ void Server::extract_msg(size_t i)
 
     size_t pos;
 
-    while ((pos = buffer.find("\n")) != std::string::npos)
+    while ((pos = buffer.find("\r\n")) != std::string::npos)
     {
         std::string msg = buffer.substr(0, pos);
         buffer.erase(0, pos + 1);
@@ -165,4 +165,15 @@ void   Server::launch()
             }
         }
     }
+}
+
+bool Server::existing_nick(const std::string& nickname) const
+{
+    for (size_t i = 0; i < clients.size(); ++i)
+    {
+        if (clients[i].getNickname() == nickname)
+            return true;
+    }
+
+    return false;
 }
