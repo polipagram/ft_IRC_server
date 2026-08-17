@@ -43,9 +43,6 @@ void Server::binding()
 
     if (bind(this->fd, reinterpret_cast<sockaddr *>(&adr), sizeof(adr)) == -1)
     {
-         std::cerr << "bind failed: "
-              << std::strerror(errno)
-              << std::endl;
         close(this->fd);
         this->fd = -1;
         throw std::runtime_error("binding failed!");
@@ -107,7 +104,7 @@ void Server::extract_msg(size_t i)
     while ((pos = buffer.find("\r\n")) != std::string::npos)
     {
         std::string msg = buffer.substr(0, pos);
-        buffer.erase(0, pos + 1);
+        buffer.erase(0, pos + 2);
         // hna khassna nparsiw lmsg to separate nick from text
         std::cout << "MSG from Client " << this->fds[i].fd << " : " << msg << std::endl;
     }
@@ -153,12 +150,20 @@ void   Server::launch()
                 continue;
             if(this->fds[i].fd == this->fd)
             {
-                connect();
+                if (this->fds[i].revents & POLLIN)
+                    connect();
+                continue;
             }
             else
             {
-                if (handle_user(i))
-                    i--;
+                if (this->fds[i].revents & POLLIN)
+                {
+                    if (handle_user(i))
+                    {
+                        i--;
+                        continue;
+                    }
+            }
             }
         }
     }
