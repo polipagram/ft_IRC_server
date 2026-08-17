@@ -73,7 +73,7 @@ void Server::poll_setup()
     this->fds.push_back(listen_socket);
 }
 
-void Server::new_user()
+void Server::connect()
 {
     int fd_client = accept(this->fd, NULL, NULL);
 
@@ -128,10 +128,7 @@ bool Server::handle_user(size_t i)
 
     if (bytes == 0)
     {
-        std::cout << "Client " << this->fds[i].fd <<  " disconnected" << std::endl;
-        close(this->fds[i].fd);
-        this->fds.erase(this->fds.begin() + i);
-        this->clients.erase(this->clients.begin() + i);
+        disconnect(i);
         return true;
     }
 
@@ -156,7 +153,7 @@ void   Server::launch()
                 continue;
             if(this->fds[i].fd == this->fd)
             {
-                new_user();
+                connect();
             }
             else
             {
@@ -190,5 +187,17 @@ Client& Server::get_client(size_t i)
 std::string Server::get_passwd() const
 {
     return this->passwd;
+}
+
+void Server::disconnect(size_t i)
+{
+    int fd_client = this->fds[i].fd;
+
+    std::cout << "Client " << fd_client << " disconnected" << std::endl;
+
+    close(fd_client);
+
+    this->fds.erase(this->fds.begin() + i);
+    this->clients.erase(this->clients.begin() + i);
 }
 

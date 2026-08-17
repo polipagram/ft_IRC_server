@@ -27,9 +27,10 @@ class Server
         void binding();
         void listening();
         void poll_setup();
-        void new_user();
+        void connect();
         bool    handle_user(size_t i);
         void   extract_msg(size_t i);
+        void disconnect(size_t i);
 
 
 
