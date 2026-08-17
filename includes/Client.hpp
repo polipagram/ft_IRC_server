@@ -16,6 +16,8 @@ private:
     // kaw : i need a buffer to store the line 
     // sent by the user in it
     std::string buffer;
+    // I think I removed this f lmerge redito :)
+    bool userRecived; // kaw
 
 public:
     Client(int fd);
@@ -29,7 +31,6 @@ public:
     void setPassIsRecived(bool registered);
     
     int getFd() const;
-    const std::string &getPass() const;
     const std::string &getNickname() const;
     const std::string &getUsername() const;
     const std::string &getPass() const;
