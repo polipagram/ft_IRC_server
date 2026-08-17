@@ -1,6 +1,6 @@
 #include "../includes/Client.hpp"
 
-Client::Client(int fd): fd(fd), auth(false), nicknameReceived(false), registered(false){}
+Client::Client(int fd): fd(fd), passRecived(false), nicknameReceived(false), registered(false), userRecived(false){}
 
 void Client::setPass(const std::string& p){
     pass = p;
@@ -31,11 +31,23 @@ const std::string& Client::getPass() const{
 }
 
 void Client::setRegistered(bool registered){
-    auth = registered;
+    registered = true;
 }
 
-bool Client::isRegistered() const{
-    return auth;
+void Client::setPassIsRecived(bool registered){
+    registered = true;
+}
+
+bool Client::passIsRecived(){
+    return passRecived;
+}
+
+bool Client::isRegistered(){
+    return registered;
+}
+
+void sendMessgToClient(std::string messg){
+    (void)messg;
 }
 
 Client::~Client(){}

@@ -1,6 +1,6 @@
 #include "../includes/Server.hpp"
 
-Server::Server(int port, const std::string &passwd) : fd(-1), port(port) , passwd(passwd)
+Server::Server(int port, const std::string &passwd) : fd(-1), port(port), passwd(passwd)
 {
     if (this->port < 1 || this->port > 65535)
         throw std::runtime_error("invalid port!");
@@ -13,7 +13,7 @@ Server::Server(int port, const std::string &passwd) : fd(-1), port(port) , passw
 
 Server::~Server()
 {
-    if(this->fd != -1)
+    if (this->fd != -1)
         close(fd);
 }
 
@@ -23,7 +23,7 @@ void Server::open_socket()
 
     if (this->fd == -1)
         throw std::runtime_error("failed to open socket!");
-    
+
     if (fcntl(this->fd, F_SETFL, O_NONBLOCK) == -1)
     {
         close(this->fd);
