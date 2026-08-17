@@ -16,7 +16,8 @@ private:
     // kaw : i need a buffer to store the line 
     // sent by the user in it
     std::string buffer;
-    bool userRecived;
+    // I think I removed this f lmerge redito :)
+    bool userRecived; // kaw
 
 public:
     Client(int fd);

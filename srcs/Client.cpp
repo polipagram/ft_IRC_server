@@ -30,10 +30,16 @@ const std::string& Client::getPass() const{
     return pass;
 }
 
+/*
+ kaw : hna kan tale3 error i fixed it I assigned dok
+ l vars li endek konty dayr registered = true
+ idk i may be wrong
+ */
 void Client::setRegistered(bool registered){
     this->registered = registered;
 }
 
+// same here
 void Client::setPassIsRecived(bool registered){
     this->passRecived = registered;
 }

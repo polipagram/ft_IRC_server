@@ -108,7 +108,7 @@ void Server::extract_msg(size_t i)
     {
         std::string msg = buffer.substr(0, pos);
         buffer.erase(0, pos + 1);
-
+        // hna khassna nparsiw lmsg to separate nick from text
         std::cout << "MSG from Client " << this->fds[i].fd << " : " << msg << std::endl;
     }
 }
@@ -167,6 +167,8 @@ void   Server::launch()
     }
 }
 
+// this function is the fnction li katcheki nicknames
+
 bool Server::existing_nick(const std::string& nickname) const
 {
     for (size_t i = 0; i < clients.size(); ++i)
@@ -181,5 +183,12 @@ bool Server::existing_nick(const std::string& nickname) const
 Client& Server::get_client(size_t i)
 {
     return this->clients[i];
+}
+
+// added this it was removed by merge
+
+std::string Server::get_passwd() const
+{
+    return this->passwd;
 }
 

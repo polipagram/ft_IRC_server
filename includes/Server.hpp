@@ -39,7 +39,7 @@ class Server
             void launch();
             bool existing_nick(const std::string& nickname) const;
             Client& get_client(size_t i);
-            
+            std::string get_passwd() const;
 };
 
 #endif
