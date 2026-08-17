@@ -43,9 +43,6 @@ void Server::binding()
 
     if (bind(this->fd, reinterpret_cast<sockaddr *>(&adr), sizeof(adr)) == -1)
     {
-         std::cerr << "bind failed: "
-              << std::strerror(errno)
-              << std::endl;
         close(this->fd);
         this->fd = -1;
         throw std::runtime_error("binding failed!");
@@ -73,7 +70,7 @@ void Server::poll_setup()
     this->fds.push_back(listen_socket);
 }
 
-void Server::new_user()
+void Server::connect()
 {
     int fd_client = accept(this->fd, NULL, NULL);
 
@@ -107,7 +104,7 @@ void Server::extract_msg(size_t i)
     while ((pos = buffer.find("\r\n")) != std::string::npos)
     {
         std::string msg = buffer.substr(0, pos);
-        buffer.erase(0, pos + 1);
+        buffer.erase(0, pos + 2);
         // hna khassna nparsiw lmsg to separate nick from text
         std::cout << "MSG from Client " << this->fds[i].fd << " : " << msg << std::endl;
     }
@@ -128,10 +125,7 @@ bool Server::handle_user(size_t i)
 
     if (bytes == 0)
     {
-        std::cout << "Client " << this->fds[i].fd <<  " disconnected" << std::endl;
-        close(this->fds[i].fd);
-        this->fds.erase(this->fds.begin() + i);
-        this->clients.erase(this->clients.begin() + i);
+        disconnect(i);
         return true;
     }
 
@@ -156,12 +150,20 @@ void   Server::launch()
                 continue;
             if(this->fds[i].fd == this->fd)
             {
-                new_user();
+                if (this->fds[i].revents & POLLIN)
+                    connect();
+                continue;
             }
             else
             {
-                if (handle_user(i))
-                    i--;
+                if (this->fds[i].revents & POLLIN)
+                {
+                    if (handle_user(i))
+                    {
+                        i--;
+                        continue;
+                    }
+            }
             }
         }
     }
@@ -190,5 +192,17 @@ Client& Server::get_client(size_t i)
 std::string Server::get_passwd() const
 {
     return this->passwd;
+}
+
+void Server::disconnect(size_t i)
+{
+    int fd_client = this->fds[i].fd;
+
+    std::cout << "Client " << fd_client << " disconnected" << std::endl;
+
+    close(fd_client);
+
+    this->fds.erase(this->fds.begin() + i);
+    this->clients.erase(this->clients.begin() + i);
 }
 
