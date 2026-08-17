@@ -10,10 +10,9 @@ int main(int ac, char **av)
 
     try
     {
-        int port = std::atoi(av[1]);
-        std::string passwd = av[2];
+        Server server(std::atoi(av[1]), av[2]);
 
-        Server server(port, passwd);
+        server.launch();
     }
     catch (const std::exception &e)
     {

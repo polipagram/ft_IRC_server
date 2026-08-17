@@ -51,3 +51,14 @@ void sendMessgToClient(std::string messg){
 }
 
 Client::~Client(){}
+
+
+void Client::append_buff(const std::string &data) // kaw
+{
+    this->buffer += data;
+}
+
+std::string &Client::get_buff() // kaw
+{
+    return this->buffer;
+}

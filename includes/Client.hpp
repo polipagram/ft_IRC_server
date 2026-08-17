@@ -12,9 +12,10 @@ private:
     std::string username; //username
     bool passRecived; //pass
     bool nicknameReceived; //nickname is recived
-    bool userRecived; 
-    bool registered;
-
+    bool registered; //user done
+    // kaw : i need a buffer to store the line 
+    // sent by the user in it
+    std::string buffer;
 
 public:
     Client(int fd);
@@ -31,7 +32,10 @@ public:
     const std::string &getPass() const;
     const std::string &getNickname() const;
     const std::string &getUsername() const;
-    void sendMessgToClient(std::string messg);
+    const std::string &getPass() const;
+    bool isRegistered() const;
+    void append_buff(const std::string &data);  //kaw
+    std::string &get_buff(); //kaw
 };
 
 
