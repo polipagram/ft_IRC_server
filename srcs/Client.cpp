@@ -31,11 +31,11 @@ const std::string& Client::getPass() const{
 }
 
 void Client::setRegistered(bool registered){
-    registered = true;
+    this->registered = registered;
 }
 
 void Client::setPassIsRecived(bool registered){
-    registered = true;
+    this->passRecived = registered;
 }
 
 bool Client::passIsRecived(){

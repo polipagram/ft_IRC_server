@@ -177,3 +177,9 @@ bool Server::existing_nick(const std::string& nickname) const
 
     return false;
 }
+
+Client& Server::get_client(size_t i)
+{
+    return this->clients[i];
+}
+
