@@ -235,10 +235,10 @@ void Server::shutdown()
 {
     std::string msg = " -_- Server shutting down\r\n";
 
-    for (size_t i = 1; i < this->fds.size(); ++i)
+    while (this->fds.size() > 1)
     {
-        send(this->fds[i].fd, msg.c_str(), msg.size(), 0);
-        close(this->fds[i].fd);
+        send(this->fds[1].fd, msg.c_str(), msg.size(), 0);
+        disconnect(1);
     }
 
     this->fds.clear();
