@@ -4,6 +4,29 @@
 
 The server is designed to be compatible with standard IRC clients, handling client connections, authentication, channel management, user commands, and message broadcasting while emphasizing socket programming, network communication, and object-oriented design.
 
+## Recent integration changes
+
+The following changes were made to make the parser, command handlers, and the
+server work together.
+
+| Change | Why it was needed |
+| --- | --- |
+| Added parser and command `.cpp` files to `Makefile` | They were not compiled or linked, so `PASS`, `NICK`, and parsing could never run in the server. |
+| Fixed include paths in `Parser.cpp` and `srcs/commands/` | Those files are two directories below `includes/`; the previous paths prevented compilation. |
+| Restored the `Server.hpp` declarations used by `Server.cpp` | The header did not declare `launch`, poll helpers, client handling, or the poll/client vectors, causing build errors. |
+| Kept `fds` and `clients` as vectors | `Server.cpp` already uses indexing and `push_back`; its previous header declared a map, which was incompatible. |
+| Added `Client::sendMessgToClient()` | Command handlers need a real member function to send IRC replies to the specific client. The old free function discarded the message. |
+| Added shared declarations for `PASS`, `NICK`, `JOIN`, and replies | `Server.cpp` needs those declarations to dispatch parsed commands safely. |
+| Added command dispatch in `Server::process_command()` | After a complete `\r\n` line is received, the server now parses it and routes `PASS` and `NICK`; unknown commands return `421`. |
+| Added `Server::getPass()` and `Server::isNicknameInUse()` | These names are used by the existing command handlers; they now delegate to the server's existing password and nickname logic. |
+| Fixed the client index offset | `fds[0]` is the listening socket but `clients[0]` is the first client. Using `clients[i]` caused an out-of-bounds access and a crash; client socket `fds[i]` now uses `clients[i - 1]`. |
+| Improved `NICK` validation | Character checks now safely use `unsigned char`, and nickname length is limited to 9 characters. |
+| Corrected the `461` reply text | Changed `Not enough cmdeters` to `Not enough parameters`. |
+
+Verification performed: `make re` succeeds with `-Wall -Wextra -Werror -std=c++98`.
+A local socket test also verified that `PASS secret`, `NICK akira`, and an unknown
+command return the expected replies without crashing the server.
+
 
 # TCP Listening Socket
 

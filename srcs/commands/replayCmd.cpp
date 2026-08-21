@@ -1,4 +1,4 @@
-#include "irc_server.hpp"
+#include "../../includes/irc_server.hpp"
 
 std::string replyCmd(int code, const Client& c, const std::string& cmd)
 {
@@ -77,9 +77,17 @@ std::string replyCmd(int code, const Client& c, const std::string& cmd)
             return ":ircserv 451 " + c.getNickname() +
                    " :You have not registered\r\n";
 
+        case 411:
+            return ":ircserv 411 " + c.getNickname() +
+                   " :No recipient given (PRIVMSG)\r\n";
+
+        case 412:
+            return ":ircserv 412 " + c.getNickname() +
+                   " :No text to send\r\n";
+
         case 461:
             return ":ircserv 461 " + c.getNickname() +
-                   " " + cmd + " :Not enough cmdeters\r\n";
+                   " " + cmd + " :Not enough parameters\r\n";
 
         case 462:
             return ":ircserv 462 " + c.getNickname() +

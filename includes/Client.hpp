@@ -29,12 +29,18 @@ public:
     bool passIsRecived();
     bool isRegistered();
     void setPassIsRecived(bool registered);
+    void setNicknameIsReceived(bool received);
+    void setUserIsRecived(bool received);
+    // Katsift reply IRC l-socket dyal had client.
+    void sendMessgToClient(const std::string &message);
     
     int getFd() const;
     const std::string &getNickname() const;
     const std::string &getUsername() const;
     const std::string &getPass() const;
     bool isRegistered() const;
+    bool nicknameIsReceived() const;
+    bool userIsRecived() const;
     void append_buff(const std::string &data);  //kaw
     std::string &get_buff(); //kaw
 };

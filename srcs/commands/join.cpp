@@ -1,0 +1,98 @@
+#include "../../includes/irc_server.hpp"
+
+static bool validChannelName(const std::string &channelName)
+{
+    // Channel khaso ybda b # w ma ykounch fih espace, comma, wla colon.
+    if (channelName.size() < 2 || channelName[0] != '#')
+        return false;
+
+    for (size_t i = 1; i < channelName.size(); ++i)
+    {
+        if (channelName[i] == ' ' || channelName[i] == ',' || channelName[i] == ':' ||
+            channelName[i] == '\r' || channelName[i] == '\n')
+            return false;
+    }
+    return true;
+}
+
+void joinHandler(Client &client, Message &message, Server &server)
+{
+    if (!client.isRegistered())
+    {
+        client.sendMessgToClient(replyCmd(451, client, "JOIN"));
+        return;
+    }
+
+    if (message.params.empty())
+    {
+        client.sendMessgToClient(replyCmd(461, client, "JOIN"));
+        return;
+    }
+
+    const std::string &channelName = message.params[0];
+    if (!validChannelName(channelName))
+    {
+        client.sendMessgToClient(replyCmd(403, client, channelName));
+        return;
+    }
+
+    std::vector<Channel> &channels = server.getChannels();
+    Channel *channel = NULL;
+    for (size_t i = 0; i < channels.size(); ++i)
+    {
+        if (channels[i].getName() == channelName)
+            channel = &channels[i];
+    }
+
+    if (channel == NULL)
+    {
+        // JOIN kaycréyi channel ila ma kaynach.
+        channels.push_back(Channel(channelName));
+        channel = &channels.back();
+    }
+    if (channel->hasMember(client.getFd()))
+    {
+        client.sendMessgToClient(replyCmd(443, client, channelName));
+        return;
+    }
+    const bool firstMember = channel->isEmpty();
+    channel->addMember(client.getFd());
+    // Awal client f channel howa operator dyalha.
+    if (firstMember)
+        channel->addOperator(client.getFd());
+
+    const std::string joinMessage = ":" + client.getNickname() + " JOIN :" + channelName + "\r\n";
+    const std::vector<int> &members = channel->getMemberFds();
+    std::vector<Client> &clients = server.getClients();
+    // JOIN khaso ywsel l-client jdid w l-ga3 members li deja f channel.
+    for (size_t i = 0; i < members.size(); ++i)
+    {
+        for (size_t j = 0; j < clients.size(); ++j)
+        {
+            if (clients[j].getFd() == members[i])
+                clients[j].sendMessgToClient(joinMessage);
+        }
+    }
+
+    std::string names;
+    for (size_t i = 0; i < members.size(); ++i)
+    {
+        for (size_t j = 0; j < clients.size(); ++j)
+        {
+            if (clients[j].getFd() == members[i])
+            {
+                if (!names.empty())
+                    names += " ";
+                if (channel->isOperator(members[i]))
+                    names += "@";
+                names += clients[j].getNickname();
+            }
+        }
+    }
+
+    // Had replies kaybeyno l-members li kaynin w fin katsali names list.
+    client.sendMessgToClient(":ircserv 353 " + client.getNickname() + " = " +
+                              channelName + " :" + names + "\r\n");
+    client.sendMessgToClient(":ircserv 366 " + client.getNickname() + " " +
+                              channelName + " :End of /NAMES list\r\n");
+}
