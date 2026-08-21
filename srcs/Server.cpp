@@ -1,13 +1,25 @@
 #include "../includes/Server.hpp"
+#include "../includes/LogicCore.hpp"
+#include <cerrno>
 
-Server::Server(int port, const std::string &passwd) : fd(-1), port(port), passwd(passwd)
+bool _shutdown= false;
+
+void sig_handler(int sig)
+{
+    if (sig == SIGINT)
+        _shutdown = true;
+}
+
+Server::Server(int port, const std::string &passwd) : fd(-1), port(port), passwd(passwd), loaded(true)
 {
     if (this->port < 1 || this->port > 65535)
         throw std::runtime_error("invalid port!");
+    std::signal(SIGINT, sig_handler);
     open_socket();
     binding();
     listening();
     poll_setup();
+
     std::cout << "socket ready to go !\n"; 
 }
 
@@ -97,16 +109,21 @@ void Server::connect()
 
 void Server::extract_msg(size_t i)
 {
-    std::string& buffer = this->clients[i].get_buff();
+    // Listening socket kaykoun f fds[0], donc client li kayqablo howa clients[i - 1].
+    std::string& buffer = this->clients[i - 1].get_buff();
 
     size_t pos;
 
-    while ((pos = buffer.find("\r\n")) != std::string::npos)
+    // Kayqbel IRC standard (\r\n) w 7ta nc li kayseft ghir \n.
+    while ((pos = buffer.find('\n')) != std::string::npos)
     {
         std::string msg = buffer.substr(0, pos);
-        buffer.erase(0, pos + 2);
-        // hna khassna nparsiw lmsg to separate nick from text
-        std::cout << "MSG from Client " << this->fds[i].fd << " : " << msg << std::endl;
+        buffer.erase(0, pos + 1);
+        // Kan7iydo \r ila line jat b CRLF qbel ma nwslo l-parser.
+        if (!msg.empty() && msg[msg.size() - 1] == '\r')
+            msg.erase(msg.size() - 1);
+        // Ghir messages kamlin b line ending li kaywslou l-parser.
+        dispatchCommand(this->clients[i - 1], msg, *this);
     }
 }
 
@@ -118,7 +135,7 @@ bool Server::handle_user(size_t i)
 
     if (bytes > 0)
     {
-        this->clients[i].append_buff(std::string(buffer, bytes));
+        this->clients[i - 1].append_buff(std::string(buffer, bytes));
         extract_msg(i);
         return false;
     }
@@ -129,21 +146,30 @@ bool Server::handle_user(size_t i)
         return true;
     }
 
-    std::cerr << "recv failed on !" << this->fds[i].fd << std::endl;
+    // Socket non-blocking t9der matlqach data mn ba3d poll, hadchi machi error.
+    if (errno == EAGAIN || errno == EWOULDBLOCK)
+        return false;
+
+    std::cerr << "recv failed on " << this->fds[i].fd << std::endl;
     close(this->fds[i].fd);
     this->fds.erase(this->fds.begin() + i);
-    this->clients.erase(this->clients.begin() + i);
+    this->clients.erase(this->clients.begin() + (i - 1));
 
     return true;
 }
 
 void   Server::launch()
 {
-    while(true)
+    while(!_shutdown)
     {
         int polling = poll(&this->fds[0], this->fds.size(), -1);
-        if(polling == -1)
-            throw std::runtime_error("poll fialed!");
+        if (polling == -1)
+        {
+            if (errno == EINTR)
+                continue;
+
+            throw std::runtime_error("poll failed!");
+        }
         for(size_t i = 0; i < this->fds.size() ; i++)
         {
             if(this->fds[i].revents == 0)
@@ -163,35 +189,32 @@ void   Server::launch()
                         i--;
                         continue;
                     }
+                // Kan7iydo socket ila lqina error, hang-up, wla descriptor maṣaliḥch.
+                if (this->fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
+                {
+                    disconnect(i);
+                    i--;
+                }
             }
             }
         }
     }
+    shutdown();
 }
 
-// this function is the fnction li katcheki nicknames
-
-bool Server::existing_nick(const std::string& nickname) const
+std::vector<Client> &Server::getClients()
 {
-    for (size_t i = 0; i < clients.size(); ++i)
-    {
-        if (clients[i].getNickname() == nickname)
-            return true;
-    }
-
-    return false;
+    return clients;
 }
 
-Client& Server::get_client(size_t i)
+std::vector<Channel> &Server::getChannels()
 {
-    return this->clients[i];
+    return channels;
 }
-
-// added this it was removed by merge
 
 std::string Server::get_passwd() const
 {
-    return this->passwd;
+    return passwd;
 }
 
 void Server::disconnect(size_t i)
@@ -203,6 +226,29 @@ void Server::disconnect(size_t i)
     close(fd_client);
 
     this->fds.erase(this->fds.begin() + i);
-    this->clients.erase(this->clients.begin() + i);
+    // 3la 7sab l-offset bin fds w clients li mchar7 f Server.hpp.
+    this->clients.erase(this->clients.begin() + (i - 1));
 }
 
+
+void Server::shutdown()
+{
+    std::string msg = " -_- Server shutting down\r\n";
+
+    for (size_t i = 1; i < this->fds.size(); ++i)
+    {
+        send(this->fds[i].fd, msg.c_str(), msg.size(), 0);
+        close(this->fds[i].fd);
+    }
+
+    this->fds.clear();
+    this->clients.clear();
+
+    if (this->fd != -1)
+    {
+        close(this->fd);
+        this->fd = -1;
+    }
+
+    std::cout << " -_- Server shutting down..." << std::endl;
+}
