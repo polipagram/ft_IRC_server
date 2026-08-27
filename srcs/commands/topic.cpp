@@ -4,13 +4,13 @@ void topicHandler(Client &client, Message &message, Server &server)
 {
     if (!client.isRegistered())
     {
-        client.sendMessgToClient(replyCmd(451, client, "TOPIC"));
+        server.sending_queue(client, replyCmd(451, client, "TOPIC"));
         return;
     }
 
     if (message.params.empty())
     {
-        client.sendMessgToClient(replyCmd(461, client, "TOPIC"));
+        server.sending_queue(client, replyCmd(461, client, "TOPIC"));
         return;
     }
 
@@ -25,7 +25,7 @@ void topicHandler(Client &client, Message &message, Server &server)
     }
     if (channel == NULL)
     {
-        client.sendMessgToClient(replyCmd(403, client, channelName));
+        server.sending_queue(client, replyCmd(403, client, channelName));
         return;
     }
 
@@ -33,16 +33,16 @@ void topicHandler(Client &client, Message &message, Server &server)
     if (message.params.size() == 1)
     {
         if (channel->getTopic().empty())
-            client.sendMessgToClient(replyCmd(331, client, channelName));
+            server.sending_queue(client, replyCmd(331, client, channelName));
         else
-            client.sendMessgToClient(":ircserv 332 " + client.getNickname() + " " +
+            server.sending_queue(client, ":ircserv 332 " + client.getNickname() + " " +
                                      channelName + " :" + channel->getTopic() + "\r\n");
         return;
     }
 
     if (!channel->hasMember(client.getFd()))
     {
-        client.sendMessgToClient(replyCmd(442, client, channelName));
+        server.sending_queue(client, replyCmd(442, client, channelName));
         return;
     }
 
@@ -59,8 +59,8 @@ void topicHandler(Client &client, Message &message, Server &server)
         for (size_t j = 0; j < clients.size(); ++j)
         {
             if (clients[j].getFd() == members[i] && clients[j].getFd() != client.getFd())
-                clients[j].sendMessgToClient(wireMessage);
+                server.sending_queue(clients[j], wireMessage);
         }
     }
-    client.sendMessgToClient(wireMessage);
+    server.sending_queue(client, wireMessage);
 }

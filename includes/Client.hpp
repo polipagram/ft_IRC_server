@@ -15,9 +15,10 @@ private:
     bool registered; //user done
     // kaw : i need a buffer to store the line 
     // sent by the user in it
-    std::string buffer;
+    std::string buffer; // client to server
     // I think I removed this f lmerge redito :)
     bool userRecived; // kaw
+    std::string send_buffer; // server to client
 
 public:
     Client(int fd);
@@ -32,7 +33,7 @@ public:
     void setNicknameIsReceived(bool received);
     void setUserIsRecived(bool received);
     // Katsift reply IRC l-socket dyal had client.
-    void sendMessgToClient(const std::string &message);
+    // void sendMessgToClient(const std::string &message);
     
     int getFd() const;
     const std::string &getNickname() const;
@@ -43,6 +44,10 @@ public:
     bool userIsRecived() const;
     void append_buff(const std::string &data);  //kaw
     std::string &get_buff(); //kaw
+    void append_send_buff(const std::string &data); //kaw
+    std::string &get_send_buff(); //kaw
+    //kantchecki beha wash clent endo maysifet mashi empty buffer
+    bool send_data() const; //kaw
 };
 
 

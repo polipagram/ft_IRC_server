@@ -123,6 +123,7 @@ void Server::extract_msg(size_t i)
         if (!msg.empty() && msg[msg.size() - 1] == '\r')
             msg.erase(msg.size() - 1);
         // Ghir messages kamlin b line ending li kaywslou l-parser.
+        // std::cout << "RAW COMMAND: [" << msg << "]" << std::endl;
         dispatchCommand(this->clients[i - 1], msg, *this);
     }
 }
@@ -158,9 +159,9 @@ bool Server::handle_user(size_t i)
     return true;
 }
 
-void   Server::launch()
+void Server::launch()
 {
-    while(!_shutdown)
+    while (!_shutdown)
     {
         int polling = poll(&this->fds[0], this->fds.size(), -1);
         if (polling == -1)
@@ -170,32 +171,44 @@ void   Server::launch()
 
             throw std::runtime_error("poll failed!");
         }
-        for(size_t i = 0; i < this->fds.size() ; i++)
+        for (size_t i = 0; i < this->fds.size(); i++)
         {
-            if(this->fds[i].revents == 0)
+            if (this->fds[i].revents == 0)
                 continue;
-            if(this->fds[i].fd == this->fd)
+
+            if (this->fds[i].fd == this->fd)
             {
                 if (this->fds[i].revents & POLLIN)
                     connect();
                 continue;
             }
-            else
+
+            if (this->fds[i].revents & POLLIN)
             {
-                if (this->fds[i].revents & POLLIN)
+                if (handle_user(i))
                 {
-                    if (handle_user(i))
-                    {
-                        i--;
-                        continue;
-                    }
-                // Kan7iydo socket ila lqina error, hang-up, wla descriptor maṣaliḥch.
-                if (this->fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
-                {
-                    disconnect(i);
                     i--;
+                    continue;
                 }
             }
+
+            // Kan7iydo socket ila lqina error, hang-up, wla descriptor maṣaliḥch.
+            if (this->fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
+            {
+                disconnect(i);
+                i--;
+                continue;
+            }
+
+            if (this->fds[i].revents & POLLOUT)
+            {
+                if (handle_send(i))
+                {
+                    std::cout << "POLLOUT enabled for fd="
+                        << fds[i].fd << std::endl;
+                    i--;
+                    continue;
+                }
             }
         }
     }
@@ -251,4 +264,58 @@ void Server::shutdown()
     }
 
     std::cout << " -_- Server shutting down..." << std::endl;
+}
+
+bool  Server::handle_send(size_t i)
+{
+    Client &client = this->clients[i - 1];
+    std::string &buffer = client.get_send_buff();
+
+    std::cout << "HANDLE_SEND: fd="
+              << this->fds[i].fd
+              << " buffer=[" << client.get_send_buff() << "]"
+              << std::endl;
+
+    if (!client.send_data())
+    {
+        this->fds[i].events &= ~POLLOUT;
+        return false;
+    }
+
+    int bytes = send(this->fds[i].fd, buffer.c_str(), buffer.size(), MSG_NOSIGNAL);
+
+    std::cout << "SEND returned: "
+          << bytes << std::endl;
+    if (bytes > 0)
+    {
+        buffer.erase(0, bytes);
+        if (!client.send_data())
+            this->fds[i].events &= ~POLLOUT;
+        return false;
+    }
+    if (bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK))
+            return false;
+    disconnect(i);
+    return true;
+}
+
+void Server::sending_queue(Client &client, const std::string &message)
+{
+    if (message.empty())
+        return;
+
+    client.append_send_buff(message);
+
+    std::cout << "QUEUE: fd=" << client.getFd()
+          << " message=[" << message << "]"
+          << std::endl;
+
+    for (size_t i = 1; i < fds.size(); ++i)
+    {
+        if (&clients[i - 1] == &client)
+        {
+            fds[i].events |= POLLOUT;
+            break;
+        }
+    }
 }

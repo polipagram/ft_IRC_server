@@ -60,11 +60,14 @@ bool Client::isRegistered(){
     return registered;
 }
 
-void Client::sendMessgToClient(const std::string &message){
-    // MSG_NOSIGNAL kaymna3 server ytsed b SIGPIPE ila client qta3 connexion.
-    if (!message.empty())
-        send(fd, message.c_str(), message.size(), MSG_NOSIGNAL);
-}
+// kaw : had function improvetha ela hsab logic dyal POLLOUt
+
+// void Client::sendMessgToClient(const std::string &message){
+//     // MSG_NOSIGNAL kaymna3 server ytsed b SIGPIPE ila client qta3 connexion.
+//     if (!message.empty())
+//         // send(fd, message.c_str(), message.size(), MSG_NOSIGNAL);
+//         append_send_buff(message); // hna send mashi 100% atsifet data kamla khassra tbuffera ead tsifet
+// }
 
 Client::~Client(){}
 
@@ -88,3 +91,19 @@ bool Client::userIsRecived() const
 {
     return userRecived;
 }
+
+void Client::append_send_buff(const std::string &data) //kaw
+{
+    this->send_buffer += data;
+}
+
+bool Client::send_data() const //kaw
+{
+    return !this->send_buffer.empty();
+}
+
+std::string &Client::get_send_buff() //kaw
+{
+    return this->send_buffer;
+}
+

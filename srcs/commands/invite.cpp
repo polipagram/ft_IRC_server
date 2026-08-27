@@ -4,12 +4,12 @@ void inviteHandler(Client &client, Message &message, Server &server)
 {
     if (!client.isRegistered())
     {
-        client.sendMessgToClient(replyCmd(451, client, "INVITE"));
+        server.sending_queue(client, replyCmd(451, client, "INVITE"));
         return;
     }
     if (message.params.size() < 2)
     {
-        client.sendMessgToClient(replyCmd(461, client, "INVITE"));
+        server.sending_queue(client, replyCmd(461, client, "INVITE"));
         return;
     }
 
@@ -27,7 +27,7 @@ void inviteHandler(Client &client, Message &message, Server &server)
     }
     if (target == NULL)
     {
-        client.sendMessgToClient(replyCmd(401, client, targetNick));
+        server.sending_queue(client, replyCmd(401, client, targetNick));
         return;
     }
 
@@ -38,23 +38,23 @@ void inviteHandler(Client &client, Message &message, Server &server)
     }
     if (channel == NULL)
     {
-        client.sendMessgToClient(replyCmd(403, client, channelName));
+        server.sending_queue(client, replyCmd(403, client, channelName));
         return;
     }
     if (!channel->isOperator(client.getFd()))
     {
-        client.sendMessgToClient(replyCmd(482, client, channelName));
+        server.sending_queue(client, replyCmd(482, client, channelName));
         return;
     }
     if (channel->hasMember(target->getFd()))
     {
-        client.sendMessgToClient(replyCmd(443, client, targetNick + " " + channelName));
+        server.sending_queue(client, replyCmd(443, client, targetNick + " " + channelName));
         return;
     }
 
     // Kan7fed invitation bach MODE +i ymken l-target ydkhol mn ba3d.
     channel->addInvite(target->getFd());
-    target->sendMessgToClient(":" + client.getNickname() + " INVITE " + targetNick +
+    server.sending_queue(*target, ":" + client.getNickname() + " INVITE " + targetNick +
                               " :" + channelName + "\r\n");
-    client.sendMessgToClient(replyCmd(341, client, targetNick + " " + channelName));
+    server.sending_queue(client, replyCmd(341, client, targetNick + " " + channelName));
 }

@@ -4,12 +4,12 @@ void kickHandler(Client &client, Message &message, Server &server)
 {
     if (!client.isRegistered())
     {
-        client.sendMessgToClient(replyCmd(451, client, "KICK"));
+        server.sending_queue(client, replyCmd(451, client, "KICK"));
         return;
     }
     if (message.params.size() < 2)
     {
-        client.sendMessgToClient(replyCmd(461, client, "KICK"));
+        server.sending_queue(client, replyCmd(461, client, "KICK"));
         return;
     }
 
@@ -30,12 +30,12 @@ void kickHandler(Client &client, Message &message, Server &server)
     }
     if (channel == NULL)
     {
-        client.sendMessgToClient(replyCmd(403, client, channelName));
+        server.sending_queue(client, replyCmd(403, client, channelName));
         return;
     }
     if (!channel->isOperator(client.getFd()))
     {
-        client.sendMessgToClient(replyCmd(482, client, channelName));
+        server.sending_queue(client, replyCmd(482, client, channelName));
         return;
     }
 
@@ -47,12 +47,12 @@ void kickHandler(Client &client, Message &message, Server &server)
     }
     if (target == NULL)
     {
-        client.sendMessgToClient(replyCmd(401, client, targetNick));
+        server.sending_queue(client, replyCmd(401, client, targetNick));
         return;
     }
     if (!channel->hasMember(target->getFd()))
     {
-        client.sendMessgToClient(replyCmd(441, client, targetNick + " " + channelName));
+        server.sending_queue(client, replyCmd(441, client, targetNick + " " + channelName));
         return;
     }
 
@@ -66,7 +66,7 @@ void kickHandler(Client &client, Message &message, Server &server)
         for (size_t j = 0; j < clients.size(); ++j)
         {
             if (clients[j].getFd() == members[i])
-                clients[j].sendMessgToClient(wireMessage);
+                server.sending_queue(clients[j], wireMessage);
         }
     }
 

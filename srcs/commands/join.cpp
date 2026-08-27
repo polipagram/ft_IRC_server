@@ -19,20 +19,20 @@ void joinHandler(Client &client, Message &message, Server &server)
 {
     if (!client.isRegistered())
     {
-        client.sendMessgToClient(replyCmd(451, client, "JOIN"));
+        server.sending_queue(client, replyCmd(451, client, "JOIN"));
         return;
     }
 
     if (message.params.empty())
     {
-        client.sendMessgToClient(replyCmd(461, client, "JOIN"));
+        server.sending_queue(client, replyCmd(461, client, "JOIN"));
         return;
     }
 
     const std::string &channelName = message.params[0];
     if (!validChannelName(channelName))
     {
-        client.sendMessgToClient(replyCmd(403, client, channelName));
+        server.sending_queue(client, replyCmd(403, client, channelName));
         return;
     }
 
@@ -52,7 +52,7 @@ void joinHandler(Client &client, Message &message, Server &server)
     }
     if (channel->hasMember(client.getFd()))
     {
-        client.sendMessgToClient(replyCmd(443, client, channelName));
+        server.sending_queue(client, replyCmd(443, client, channelName));
         return;
     }
     const bool firstMember = channel->isEmpty();
@@ -70,7 +70,7 @@ void joinHandler(Client &client, Message &message, Server &server)
         for (size_t j = 0; j < clients.size(); ++j)
         {
             if (clients[j].getFd() == members[i])
-                clients[j].sendMessgToClient(joinMessage);
+                server.sending_queue(clients[j], joinMessage);
         }
     }
 
@@ -91,8 +91,8 @@ void joinHandler(Client &client, Message &message, Server &server)
     }
 
     // Had replies kaybeyno l-members li kaynin w fin katsali names list.
-    client.sendMessgToClient(":ircserv 353 " + client.getNickname() + " = " +
+    server.sending_queue(client, ":ircserv 353 " + client.getNickname() + " = " +
                               channelName + " :" + names + "\r\n");
-    client.sendMessgToClient(":ircserv 366 " + client.getNickname() + " " +
+    server.sending_queue(client, ":ircserv 366 " + client.getNickname() + " " +
                               channelName + " :End of /NAMES list\r\n");
 }

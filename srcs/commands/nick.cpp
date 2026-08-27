@@ -36,18 +36,18 @@ bool checkNickValid(const std::string& nick) {
 void nickHundler(Client &c, Message &M, Server &s) {
     // Khass client ydir PASS b nja7 qbel ma ykhtar nickname.
     if (!c.passIsRecived()) {
-        c.sendMessgToClient(replyCmd(451, c, "NICK :You have not registered"));
+        s.sending_queue(c, replyCmd(451, c, "NICK :You have not registered"));
         return;
     }
     
     if (M.params.empty()) {
-        c.sendMessgToClient(replyCmd(431, c, ":No nickname given"));
+        s.sending_queue(c, replyCmd(431, c, ":No nickname given"));
         return;
     }
     
     std::string newNick = M.params[0];
     if (!checkNickValid(newNick)) {
-        c.sendMessgToClient(replyCmd(432, c, newNick + " :Erroneous nickname"));
+        s.sending_queue(c, replyCmd(432, c, newNick + " :Erroneous nickname"));
         return;
     }
 
@@ -55,7 +55,7 @@ void nickHundler(Client &c, Message &M, Server &s) {
     std::vector<Client> &clients = s.getClients();
     for (size_t i = 0; i < clients.size(); ++i) {
         if (clients[i].getNickname() == newNick && clients[i].getFd() != c.getFd()) {
-            c.sendMessgToClient(replyCmd(433, c, newNick + " :Nickname is already in use"));
+            s.sending_queue(c, replyCmd(433, c, newNick + " :Nickname is already in use"));
             return;
         }
     }
@@ -67,6 +67,6 @@ void nickHundler(Client &c, Message &M, Server &s) {
     if (c.userIsRecived())
     {
         c.setRegistered(true);
-        c.sendMessgToClient(replyCmd(1, c, ""));
+        s.sending_queue(c, replyCmd(1, c, ""));
     }
 }

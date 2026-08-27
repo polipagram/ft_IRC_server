@@ -46,6 +46,10 @@ class Server
         std::vector<Channel> &getChannels();
         std::string get_passwd() const;
         void shutdown();
+        void sending_queue(Client &client, const std::string &message);
+        bool handle_send(size_t i);
+
+
 
 };
 

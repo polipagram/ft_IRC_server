@@ -8,14 +8,14 @@ void userHandler(Client &client, Message &message, Server &server)
     // Ila client deja registered, ma y9derch ybdel USER.
     if (client.isRegistered())
     {
-        client.sendMessgToClient(replyCmd(462, client, "USER"));
+        server.sending_queue(client, replyCmd(462, client, "USER"));
         return;
     }
 
     // 2. Khasso ydir PASS qbel USER (7sab logic dyal project dyalk).
     if (!client.passIsRecived())
     {
-        client.sendMessgToClient(replyCmd(451, client, "USER :You have not registered"));
+        server.sending_queue(client, replyCmd(451, client, "USER :You have not registered"));
         return;
     }
 
@@ -23,7 +23,7 @@ void userHandler(Client &client, Message &message, Server &server)
     // username, mode (0), unused (*), realname.
     if (message.params.size() < 4)
     {
-        client.sendMessgToClient(replyCmd(461, client, "USER"));
+        server.sending_queue(client, replyCmd(461, client, "USER"));
         return;
     }
 
@@ -35,6 +35,6 @@ void userHandler(Client &client, Message &message, Server &server)
     if (client.nicknameIsReceived())
     {
         client.setRegistered(true);
-        client.sendMessgToClient(replyCmd(1, client, ""));
+        server.sending_queue(client, replyCmd(1, client, ""));
     }
 }
