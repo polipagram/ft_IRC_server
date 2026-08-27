@@ -80,8 +80,4 @@ void privmsgHandler(Client &client, Message &message, Server &server)
     // Message privé katsift ghir l-client li smitou f target.
     // recipient->sendMessgToClient(wireMessage);
     server.sending_queue(*recipient, wireMessage);
-    std::cout << "PRIVMSG: sending to "
-          << recipient->getNickname()
-          << " fd=" << recipient->getFd()
-          << std::endl;
 }

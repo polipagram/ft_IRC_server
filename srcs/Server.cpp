@@ -204,8 +204,6 @@ void Server::launch()
             {
                 if (handle_send(i))
                 {
-                    std::cout << "POLLOUT enabled for fd="
-                        << fds[i].fd << std::endl;
                     i--;
                     continue;
                 }
@@ -271,11 +269,6 @@ bool  Server::handle_send(size_t i)
     Client &client = this->clients[i - 1];
     std::string &buffer = client.get_send_buff();
 
-    std::cout << "HANDLE_SEND: fd="
-              << this->fds[i].fd
-              << " buffer=[" << client.get_send_buff() << "]"
-              << std::endl;
-
     if (!client.send_data())
     {
         this->fds[i].events &= ~POLLOUT;
@@ -284,8 +277,6 @@ bool  Server::handle_send(size_t i)
 
     int bytes = send(this->fds[i].fd, buffer.c_str(), buffer.size(), MSG_NOSIGNAL);
 
-    std::cout << "SEND returned: "
-          << bytes << std::endl;
     if (bytes > 0)
     {
         buffer.erase(0, bytes);
@@ -305,10 +296,6 @@ void Server::sending_queue(Client &client, const std::string &message)
         return;
 
     client.append_send_buff(message);
-
-    std::cout << "QUEUE: fd=" << client.getFd()
-          << " message=[" << message << "]"
-          << std::endl;
 
     for (size_t i = 1; i < fds.size(); ++i)
     {
