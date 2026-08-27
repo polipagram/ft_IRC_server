@@ -1,0 +1,3 @@
+- Disconnect → remove client from channels
+- Empty channel deletion
+- . Input buffer limit

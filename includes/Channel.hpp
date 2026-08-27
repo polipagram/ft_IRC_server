@@ -28,6 +28,7 @@ public:
     void addInvite(int fd);
     const std::string &getTopic() const;
     void setTopic(const std::string &newTopic);
+    void remove_invite(int fd); // kaw
 };
 
 #endif

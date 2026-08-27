@@ -96,3 +96,16 @@ void Channel::setTopic(const std::string &newTopic)
 {
     topic = newTopic;
 }
+
+// kaw
+void Channel::remove_invite(int fd)
+{
+    for (size_t i = 0; i < invitedFds.size(); ++i)
+    {
+        if (invitedFds[i] == fd)
+        {
+            invitedFds.erase(invitedFds.begin() + i);
+            return;
+        }
+    }
+}

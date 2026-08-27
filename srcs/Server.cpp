@@ -130,7 +130,7 @@ void Server::extract_msg(size_t i)
 
 bool Server::handle_user(size_t i)
 {
-    char buffer[1024];
+    char buffer[4006];
 
     int bytes = recv(this->fds[i].fd, buffer, sizeof(buffer) - 1,0);
 
@@ -234,6 +234,8 @@ void Server::disconnect(size_t i)
 
     std::cout << "Client " << fd_client << " disconnected" << std::endl;
 
+    leave_chanels(fd_client);
+
     close(fd_client);
 
     this->fds.erase(this->fds.begin() + i);
@@ -304,5 +306,19 @@ void Server::sending_queue(Client &client, const std::string &message)
             fds[i].events |= POLLOUT;
             break;
         }
+    }
+}
+
+void Server::leave_chanels(int fd)
+{
+    for (size_t i = 0; i < channels.size();)
+    {
+        channels[i].removeMember(fd);
+        channels[i].remove_invite(fd);
+
+        if (channels[i].isEmpty())
+            channels.erase(channels.begin() + i);
+        else
+            ++i;
     }
 }

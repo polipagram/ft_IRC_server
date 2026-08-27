@@ -37,6 +37,7 @@ class Server
         bool handle_user(size_t i);
         void extract_msg(size_t i);
         void disconnect(size_t i);
+        void leave_chanels(int fd);
 
     public:
         Server(int port, const std::string& passwd);
@@ -48,6 +49,7 @@ class Server
         void shutdown();
         void sending_queue(Client &client, const std::string &message);
         bool handle_send(size_t i);
+
 
 
 
