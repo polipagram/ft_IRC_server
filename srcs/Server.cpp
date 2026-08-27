@@ -152,10 +152,7 @@ bool Server::handle_user(size_t i)
         return false;
 
     std::cerr << "recv failed on " << this->fds[i].fd << std::endl;
-    close(this->fds[i].fd);
-    this->fds.erase(this->fds.begin() + i);
-    this->clients.erase(this->clients.begin() + (i - 1));
-
+    disconnect(i);
     return true;
 }
 
@@ -299,7 +296,7 @@ void Server::sending_queue(Client &client, const std::string &message)
 
     client.append_send_buff(message);
 
-    for (size_t i = 1; i < fds.size(); ++i)
+    for (size_t i = 1; i < fds.size(); )
     {
         if (&clients[i - 1] == &client)
         {
@@ -319,6 +316,6 @@ void Server::leave_chanels(int fd)
         if (channels[i].isEmpty())
             channels.erase(channels.begin() + i);
         else
-            ++i;
+            i++;
     }
 }

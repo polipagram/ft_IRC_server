@@ -1,3 +1,23 @@
 - Disconnect → remove client from channels
 - Empty channel deletion
-- . Input buffer limit
+- Input buffer limit
+
+[ ] +i — Enable invite-only
+[ ] -i — Disable invite-only
+
+[ ] +t — Only operators can change topic
+[ ] -t — Members can change topic
+
+[ ] +k — Set channel key
+[ ] -k — Remove channel key
+
+[ ] +o — Give operator status
+[ ] -o — Remove operator status
+
+[ ] +l — Set user limit
+[ ] -l — Remove user limit
+
+[ ] Check MODE parameters
+[ ] Check that only channel operators can change modes
+[ ] Send proper MODE replies/errors
+[ ] Broadcast mode changes to channel members
