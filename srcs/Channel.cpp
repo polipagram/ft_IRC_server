@@ -100,7 +100,7 @@ void Channel::setTopic(const std::string &newTopic)
 // kaw
 void Channel::remove_invite(int fd)
 {
-    for (size_t i = 0; i < invitedFds.size(); ++i)
+    for (size_t i = 0; i < invitedFds.size(); i++)
     {
         if (invitedFds[i] == fd)
         {
@@ -109,3 +109,19 @@ void Channel::remove_invite(int fd)
         }
     }
 }
+
+//kaw
+
+void Channel::remove_operator(int fd)
+{
+    for (size_t i = 0; i < operatorFds.size(); i++)
+    {
+        if (operatorFds[i] == fd)
+        {
+            operatorFds.erase(operatorFds.begin() + i);
+            return;
+        }
+    }
+}
+
+

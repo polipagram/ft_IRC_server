@@ -55,7 +55,7 @@ void nickHundler(Client &c, Message &M, Server &s) {
     std::vector<Client> &clients = s.getClients();
     for (size_t i = 0; i < clients.size(); ++i) {
         if (clients[i].getNickname() == newNick && clients[i].getFd() != c.getFd()) {
-            s.sending_queue(c, replyCmd(433, c, newNick + " :Nickname is already in use"));
+            s.sending_queue(c, replyCmd(433, c, newNick));
             return;
         }
     }

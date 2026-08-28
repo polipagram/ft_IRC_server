@@ -21,3 +21,36 @@
 [ ] Check that only channel operators can change modes
 [ ] Send proper MODE replies/errors
 [ ] Broadcast mode changes to channel members
+
+
+MODE #channel +o nickname
+     │       │   │
+     │       │   └── target user
+     │       └────── mode: give operator
+     └────────────── channel
+
+
+
+MODE #channel -o nickname
+              │
+              └── remove operator
+
+
+
+451 = ERR_NOTREGISTERED
+461 = ERR_NEEDMOREPARAMS
+403 = ERR_NOSUCHCHANNEL
+482 = ERR_CHANOPRIVSNEEDED
+472 = ERR_UNKNOWNMODE
+401 = ERR_NOSUCHNICK
+441 = ERR_USERNOTINCHANNEL
+
+
+kaw :Nickname is already in use :Nickname is already in use
+
+
+:kaw JOIN :#test
+:ircserv 353 kaw = #test :@kaw
+:ircserv 366 kaw #test :End of /NAMES list
+
+

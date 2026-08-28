@@ -16,6 +16,8 @@ void privmsgHandler(Client &client, Message &message, Server &server);
 void topicHandler(Client &client, Message &message, Server &server);
 void kickHandler(Client &client, Message &message, Server &server);
 void inviteHandler(Client &client, Message &message, Server &server);
+void modes(Client &client, Message &message, Server &server); // kaw
+
 
 
 

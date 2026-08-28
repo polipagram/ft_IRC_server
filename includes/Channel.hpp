@@ -29,6 +29,8 @@ public:
     const std::string &getTopic() const;
     void setTopic(const std::string &newTopic);
     void remove_invite(int fd); // kaw
+    void remove_operator(int fd); // kaw
+
 };
 
 #endif

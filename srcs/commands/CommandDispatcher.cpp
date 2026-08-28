@@ -1,6 +1,7 @@
 #include "../../includes/LogicCore.hpp"
 #include "../../includes/irc_server.hpp"
 #include "../../includes/Server.hpp"
+#include "../../includes/Channel.hpp"
 #include <cctype>
 
 void dispatchCommand(Client &client, const std::string &line, Server &server)
@@ -28,6 +29,8 @@ void dispatchCommand(Client &client, const std::string &line, Server &server)
         kickHandler(client, message, server);
     else if (command == "INVITE")
         inviteHandler(client, message, server);
+    else if (command == "MODE")
+        modes(client, message, server);
     else if (!command.empty())
         // client.sendMessgToClient(replyCmd(421, client, command));
         // kaw : bedelt logic dyal send finma kayna sendMessgtoClient 

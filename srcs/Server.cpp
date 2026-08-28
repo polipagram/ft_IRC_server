@@ -296,7 +296,7 @@ void Server::sending_queue(Client &client, const std::string &message)
 
     client.append_send_buff(message);
 
-    for (size_t i = 1; i < fds.size(); )
+    for (size_t i = 1; i < fds.size(); i++)
     {
         if (&clients[i - 1] == &client)
         {
