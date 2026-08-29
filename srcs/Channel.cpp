@@ -1,6 +1,6 @@
 #include "../includes/Channel.hpp"
 
-Channel::Channel(const std::string &channelName) : name(channelName) , invite_only(false)
+Channel::Channel(const std::string &channelName) : name(channelName) , invite_only(false) , change_topic(false)
 {
 }
 
@@ -124,7 +124,6 @@ void Channel::remove_operator(int fd)
     }
 }
 
-
 bool Channel::isInvite_only() const
 {
     return invite_only;
@@ -133,6 +132,16 @@ bool Channel::isInvite_only() const
 void Channel::setInvite_only(bool val)
 {
     invite_only = val;
+}
+
+bool Channel::is_change_topic() const
+{
+    return change_topic;
+}
+
+void Channel::set_change_topic(bool val)
+{
+    change_topic = val;
 }
 
 

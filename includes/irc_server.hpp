@@ -17,8 +17,7 @@ void topicHandler(Client &client, Message &message, Server &server);
 void kickHandler(Client &client, Message &message, Server &server);
 void inviteHandler(Client &client, Message &message, Server &server);
 void modes(Client &client, Message &message, Server &server); // kaw
-
-
+void notification(Channel &channel, std::vector<Client> &clients, Server &server, std::string &msg);
 
 
 

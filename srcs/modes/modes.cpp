@@ -10,6 +10,23 @@ void print_modes(const std::string &mode,const std::string &channel_name, const 
     std::cout << std::endl;
 }
 
+void notification(Channel &channel, std::vector<Client> &clients, Server &server, std::string &msg)
+{
+    const std::vector<int> &members = channel.getMemberFds();
+
+    for (size_t i = 0; i < members.size(); ++i)
+    {
+        for (size_t j = 0; j < clients.size(); ++j)
+        {
+            if (clients[j].getFd() == members[i])
+            {
+                server.sending_queue(clients[j], msg);
+                break;
+            }
+        }
+    }
+}
+
 void modes(Client &client, Message &message, Server &server)
 {
     if (!client.isRegistered())
@@ -62,21 +79,25 @@ void modes(Client &client, Message &message, Server &server)
 
         print_modes(mode, channel_name, "");
 
-        const std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + "\r\n";
+        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + "\r\n";
 
-        const std::vector<int> &members = channel->getMemberFds();
+        notification(*channel, clients, server, msg);
 
-        for (size_t i = 0; i < members.size(); ++i)
-        {
-            for (size_t j = 0; j < clients.size(); ++j)
-            {
-                if (clients[j].getFd() == members[i])
-                {
-                    server.sending_queue(clients[j], msg);
-                    break;
-                }
-            }
-        }
+        return;
+    }
+
+    if (mode == "+t" || mode == "-t")
+    {
+        if (mode == "+t")
+            channel->set_change_topic(true);
+        else
+            channel->set_change_topic(false);
+
+        print_modes(mode, channel_name, "");
+
+        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + "\r\n";
+
+        notification(*channel, clients, server, msg);
 
         return;
     }
@@ -114,7 +135,8 @@ void modes(Client &client, Message &message, Server &server)
 
     if (!channel->hasMember(target->getFd()))
     {
-        server.sending_queue(client, replyCmd(441, client, user_nick + " " + channel_name));
+        server.sending_queue(client,
+            replyCmd(441, client, user_nick + " " + channel_name));
         return;
     }
 
@@ -125,19 +147,7 @@ void modes(Client &client, Message &message, Server &server)
 
     print_modes(mode, channel_name, user_nick);
 
-    const std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + " " + user_nick + "\r\n";
+    std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + " " + user_nick + "\r\n";
 
-    const std::vector<int> &members = channel->getMemberFds();
-
-    for (size_t i = 0; i < members.size(); ++i)
-    {
-        for (size_t j = 0; j < clients.size(); ++j)
-        {
-            if (clients[j].getFd() == members[i])
-            {
-                server.sending_queue(clients[j], msg);
-                break;
-            }
-        }
-    }
+    notification(*channel, clients, server, msg);
 }

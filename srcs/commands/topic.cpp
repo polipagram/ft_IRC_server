@@ -45,6 +45,14 @@ void topicHandler(Client &client, Message &message, Server &server)
         server.sending_queue(client, replyCmd(442, client, channelName));
         return;
     }
+    
+    // kaw
+
+    if (channel->is_change_topic() && !channel->isOperator(client.getFd()))
+    {
+        server.sending_queue(client, replyCmd(482, client, channelName));
+        return;
+    }
 
     const std::string &newTopic = message.params[1];
     // Topic katb9a f Channel; restriction dyal operator ghadi tzad m3a MODE +t.
