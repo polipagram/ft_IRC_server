@@ -47,6 +47,8 @@ private:
     int get_limit() const;
     void set_limit(int limit);
     void remove_limit();
+    const std::vector<int> getOperatorFds() const;
+
 
 };
 

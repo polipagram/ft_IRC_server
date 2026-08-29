@@ -154,7 +154,7 @@ void modes(Client &client, Message &message, Server &server)
         bool valid = !limit_str.empty();
         for (size_t k = 0; k < limit_str.size() && valid; k++)
         {
-            if (!isdigit(static_cast<unsigned char>(limit_str[k])))
+            if (!isdigit((limit_str[k])))
                 valid = false;
         }
 
@@ -225,15 +225,28 @@ void modes(Client &client, Message &message, Server &server)
 
     if (!channel->hasMember(target->getFd()))
     {
-        server.sending_queue(client,
-            replyCmd(441, client, user_nick + " " + channel_name));
+        server.sending_queue(client, replyCmd(441, client, user_nick + " " + channel_name));
         return;
     }
 
     if (mode == "+o")
+    {
         channel->addOperator(target->getFd());
+    }
     else
-        channel->remove_operator(target->getFd());
+    {
+        if (channel->isOperator(target->getFd()))
+        {
+            if (channel->getOperatorFds().size() == 1)
+            {
+                 std::string msg = ":ircserv NOTICE " + client.getNickname() + " :You cannot remove the last channel operator\r\n";
+                server.sending_queue(client, msg);
+                return;
+            }
+
+            channel->remove_operator(target->getFd());
+        }
+    }
 
     print_modes(mode, channel_name, user_nick);
 
