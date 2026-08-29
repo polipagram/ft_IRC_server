@@ -7,7 +7,7 @@ SRCS = srcs/Server.cpp srcs/Channel.cpp main.cpp srcs/Client.cpp srcs/parsser/Pa
 	srcs/commands/CommandDispatcher.cpp \
 	srcs/commands/pass.cpp srcs/commands/nick.cpp srcs/commands/join.cpp \
 	srcs/commands/user.cpp srcs/commands/privmsg.cpp srcs/commands/topic.cpp \
-	srcs/commands/kick.cpp srcs/commands/invite.cpp srcs/commands/replayCmd.cpp srcs/modes/operator.cpp 
+	srcs/commands/kick.cpp srcs/commands/invite.cpp srcs/commands/replayCmd.cpp srcs/modes/modes.cpp 
 
 OBJS = $(SRCS:.cpp=.o)
 

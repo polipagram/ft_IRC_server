@@ -13,6 +13,7 @@ private:
     std::vector<int> memberFds;
     std::vector<int> operatorFds;
     std::vector<int> invitedFds;
+    bool invite_only;
 
 public:
     Channel(const std::string &name);
@@ -30,6 +31,8 @@ public:
     void setTopic(const std::string &newTopic);
     void remove_invite(int fd); // kaw
     void remove_operator(int fd); // kaw
+    bool isInvite_only() const;
+    void setInvite_only(bool value);
 
 };
 

@@ -1,7 +1,16 @@
 #include "../../includes/irc_server.hpp"
 
+void print_modes(const std::string &mode,const std::string &channel_name, const std::string &Nick)
+{
+    std::cout << "[MODE] " << channel_name << " " << mode;
 
-void op(Client &client, Message &message, Server &server)
+    if (!Nick.empty())
+        std::cout << " " << Nick;
+
+    std::cout << std::endl;
+}
+
+void modes(Client &client, Message &message, Server &server)
 {
     if (!client.isRegistered())
     {
@@ -44,6 +53,34 @@ void op(Client &client, Message &message, Server &server)
         return;
     }
 
+    if (mode == "+i" || mode == "-i")
+    {
+        if (mode == "+i")
+            channel->setInvite_only(true);
+        else
+            channel->setInvite_only(false);
+
+        print_modes(mode, channel_name, "");
+
+        const std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + "\r\n";
+
+        const std::vector<int> &members = channel->getMemberFds();
+
+        for (size_t i = 0; i < members.size(); ++i)
+        {
+            for (size_t j = 0; j < clients.size(); ++j)
+            {
+                if (clients[j].getFd() == members[i])
+                {
+                    server.sending_queue(clients[j], msg);
+                    break;
+                }
+            }
+        }
+
+        return;
+    }
+
     if (mode != "+o" && mode != "-o")
     {
         server.sending_queue(client, replyCmd(472, client, mode));
@@ -83,9 +120,10 @@ void op(Client &client, Message &message, Server &server)
 
     if (mode == "+o")
         channel->addOperator(target->getFd());
-
     else
         channel->remove_operator(target->getFd());
+
+    print_modes(mode, channel_name, user_nick);
 
     const std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + " " + user_nick + "\r\n";
 
@@ -102,10 +140,4 @@ void op(Client &client, Message &message, Server &server)
             }
         }
     }
-}
-
-
-void modes(Client &client, Message &message, Server &server)
-{
-    op(client, message, server);
 }
