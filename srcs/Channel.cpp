@@ -144,4 +144,24 @@ void Channel::set_change_topic(bool val)
     change_topic = val;
 }
 
+bool Channel::has_key() const
+{
+    return !key.empty();
+}
+
+std::string Channel::get_key() const
+{
+    return key;
+}
+
+void Channel::set_key(std::string new_key)
+{
+    key = new_key;
+}
+
+void Channel::remove_key()
+{
+    key.clear();
+}
+
 

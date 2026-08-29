@@ -61,6 +61,16 @@ void joinHandler(Client &client, Message &message, Server &server)
         server.sending_queue(client, replyCmd(473, client, channelName));
         return;
     }
+
+    if (channel->has_key())
+    {
+        if (message.params.size() < 2 || message.params[1] != channel->get_key())
+        {
+            server.sending_queue(client, replyCmd(475, client, channelName));
+            return;
+        }
+    } // kaw
+
     const bool firstMember = channel->isEmpty();
     channel->addMember(client.getFd());
     // Awal client f channel howa operator dyalha.

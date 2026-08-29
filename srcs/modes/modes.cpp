@@ -41,8 +41,8 @@ void modes(Client &client, Message &message, Server &server)
         return;
     }
 
-    const std::string &channel_name = message.params[0];
-    const std::string &mode = message.params[1];
+    std::string &channel_name = message.params[0];
+    std::string &mode = message.params[1];
 
     std::vector<Channel> &channels = server.getChannels();
     std::vector<Client> &clients = server.getClients();
@@ -102,6 +102,46 @@ void modes(Client &client, Message &message, Server &server)
         return;
     }
 
+    if (mode == "+k")
+    {
+        if (message.params.size() < 3)
+        {
+            server.sending_queue(client, replyCmd(461, client, "MODE"));
+            return;
+        }
+
+        std::string &key = message.params[2];
+
+        channel->set_key(key);
+
+        print_modes(mode, channel_name, key);
+
+        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " +k " + key + "\r\n";
+
+        notification(*channel, clients, server, msg);
+
+        return;
+    }
+
+    if (mode == "-k")
+    {
+        if (message.params.size() < 3)
+        {
+            server.sending_queue(client, replyCmd(461, client, "MODE"));
+            return;
+        }
+
+        channel->remove_key();
+
+        print_modes(mode, channel_name, "");
+
+        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " -k\r\n";
+
+        notification(*channel, clients, server, msg);
+
+        return;
+    }
+
     if (mode != "+o" && mode != "-o")
     {
         server.sending_queue(client, replyCmd(472, client, mode));
@@ -114,7 +154,7 @@ void modes(Client &client, Message &message, Server &server)
         return;
     }
 
-    const std::string &user_nick = message.params[2];
+    std::string &user_nick = message.params[2];
 
     Client *target = NULL;
 
