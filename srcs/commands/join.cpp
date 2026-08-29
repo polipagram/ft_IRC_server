@@ -70,7 +70,11 @@ void joinHandler(Client &client, Message &message, Server &server)
             return;
         }
     } // kaw
-
+    if (channel->has_limit() && static_cast<int>(channel->getMemberFds().size()) >= channel->get_limit())
+    {
+        server.sending_queue(client, replyCmd(471, client, channelName));
+        return;
+    }
     const bool firstMember = channel->isEmpty();
     channel->addMember(client.getFd());
     // Awal client f channel howa operator dyalha.

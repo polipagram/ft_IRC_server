@@ -1,6 +1,7 @@
 #include "../includes/Channel.hpp"
 
-Channel::Channel(const std::string &channelName) : name(channelName) , invite_only(false) , change_topic(false)
+Channel::Channel(const std::string &channelName) : name(channelName) , invite_only(false) ,
+ change_topic(false) , limit(0)
 {
 }
 
@@ -162,6 +163,26 @@ void Channel::set_key(std::string new_key)
 void Channel::remove_key()
 {
     key.clear();
+}
+
+bool Channel::has_limit() const
+{
+    return limit > 0;
+}
+
+int Channel::get_limit() const
+{
+    return limit;
+}
+
+void Channel::set_limit(int user_limit)
+{
+    limit = user_limit;
+}
+
+void Channel::remove_limit()
+{
+    limit = 0;
 }
 
 

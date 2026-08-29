@@ -142,6 +142,56 @@ void modes(Client &client, Message &message, Server &server)
         return;
     }
 
+    if (mode == "+l")
+    {
+        if (message.params.size() < 3)
+        {
+            server.sending_queue(client, replyCmd(461, client, "MODE"));
+            return;
+        }
+
+        const std::string &limit_str = message.params[2];
+        bool valid = !limit_str.empty();
+        for (size_t k = 0; k < limit_str.size() && valid; k++)
+        {
+            if (!isdigit(static_cast<unsigned char>(limit_str[k])))
+                valid = false;
+        }
+
+        if (!valid)
+        {
+            server.sending_queue(client, replyCmd(461, client, "MODE"));
+            return;
+        }
+
+        int limit = std::atoi(limit_str.c_str());
+
+        if (limit <= 0)
+        {
+            server.sending_queue(client, replyCmd(461, client, "MODE"));
+            return;
+        }
+
+        channel->set_limit(limit);
+
+        print_modes(mode, channel_name, message.params[2]);
+
+        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " +l " + message.params[2] + "\r\n";
+        notification(*channel, clients, server, msg);
+        return;
+    }
+
+    if (mode == "-l")
+    {
+        channel->remove_limit();
+        print_modes(mode, channel_name, "");
+
+        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " -l\r\n";
+        notification(*channel, clients, server, msg);
+
+        return;
+    }
+
     if (mode != "+o" && mode != "-o")
     {
         server.sending_queue(client, replyCmd(472, client, mode));

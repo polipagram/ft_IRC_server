@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdlib>
 
 class Channel
 {
@@ -15,7 +16,8 @@ private:
     std::vector<int> invitedFds;
     bool invite_only; // kaw
     bool change_topic; // kaw
-    std::string key;
+    std::string key; // kaw
+    int limit; // kaw
     
     public:
     Channel(const std::string &name);
@@ -41,6 +43,10 @@ private:
     std::string  get_key() const;
     void set_key(std::string new_key);
     void  remove_key();
+    bool has_limit() const;
+    int get_limit() const;
+    void set_limit(int limit);
+    void remove_limit();
 
 };
 
