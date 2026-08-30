@@ -47,7 +47,8 @@ void nickHundler(Client &c, Message &M, Server &s) {
     
     std::string newNick = M.params[0];
     if (!checkNickValid(newNick)) {
-        s.sending_queue(c, replyCmd(432, c, newNick + " :Erroneous nickname"));
+        // kaw : fixit duplicated relpy
+        s.sending_queue(c, replyCmd(432, c, newNick + ""));
         return;
     }
 

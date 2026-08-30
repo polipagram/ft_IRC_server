@@ -56,7 +56,7 @@ void kickHandler(Client &client, Message &message, Server &server)
         return;
     }
     // kaw : fixit l operator ida kan buhdo maykickeh rasso ida kan huwa buhdu li member
-    // 
+    //  o ida kan huwa l operator lwahid f chnnel bash maykhrejsh oyeb9aw clients stuck
     if (channel->isOperator(target->getFd()) && channel->getOperatorFds().size() == 1 &&
         channel->getMemberFds().size() > 1)
     {
