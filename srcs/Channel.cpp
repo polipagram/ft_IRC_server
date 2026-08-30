@@ -185,7 +185,7 @@ void Channel::remove_limit()
     limit = 0;
 }
 
-const std::vector<int> Channel::getOperatorFds() const
+const std::vector<int> &Channel::getOperatorFds() const
 {
     return operatorFds;
 }

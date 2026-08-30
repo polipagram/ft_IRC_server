@@ -245,14 +245,17 @@ void Server::shutdown()
 {
     std::string msg = " -_- Server shutting down\r\n";
 
-    while (this->fds.size() > 1)
+    for (size_t i = 1; i < this->fds.size(); ++i)
     {
-        send(this->fds[1].fd, msg.c_str(), msg.size(), 0);
-        disconnect(1);
+        send(this->fds[i].fd, msg.c_str(), msg.size(), MSG_NOSIGNAL);
     }
 
-    this->fds.clear();
+    while (this->fds.size() > 1)
+        disconnect(1);
+
+    this->channels.clear();
     this->clients.clear();
+    this->fds.clear();
 
     if (this->fd != -1)
     {
@@ -312,6 +315,7 @@ void Server::leave_chanels(int fd)
     {
         channels[i].removeMember(fd);
         channels[i].remove_invite(fd);
+        channels[i].remove_operator(fd);
 
         if (channels[i].isEmpty())
             channels.erase(channels.begin() + i);
