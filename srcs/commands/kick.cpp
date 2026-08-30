@@ -55,6 +55,16 @@ void kickHandler(Client &client, Message &message, Server &server)
         server.sending_queue(client, replyCmd(441, client, targetNick + " " + channelName));
         return;
     }
+    // kaw : fixit l operator ida kan buhdo maykickeh rasso ida kan huwa buhdu li member
+    // 
+    if (channel->isOperator(target->getFd()) && channel->getOperatorFds().size() == 1 &&
+        channel->getMemberFds().size() > 1)
+    {
+
+        std::string msg = ":ircserv NOTICE " + client.getNickname() + " :You cannot kick the last channel operator\r\n";
+        server.sending_queue(client, msg);
+        return;
+    }
 
     const std::string reason = message.params.size() > 2 ? message.params[2] : client.getNickname();
     const std::string wireMessage = ":" + client.getNickname() + " KICK " + channelName +

@@ -64,8 +64,10 @@ void nickHundler(Client &c, Message &M, Server &s) {
     c.setNicknameIsReceived(true);
 
     // Ila USER deja t3ammar, NICK howa akher 7aja naqsa bach ykml registration.
-    if (c.userIsRecived())
+    if (c.userIsRecived() && !c.isRegistered())
     {
+        // kaw
+        // in case l user bgha ybedel nick maytle3sh lih welcome msg
         c.setRegistered(true);
         s.sending_queue(c, replyCmd(1, c, ""));
     }
