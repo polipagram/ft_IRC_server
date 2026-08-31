@@ -231,21 +231,22 @@ void modes(Client &client, Message &message, Server &server)
 
     if (mode == "+o")
     {
+        if(channel->isOperator(target->getFd()))
+            return;
         channel->addOperator(target->getFd());
     }
     else
     {
-        if (channel->isOperator(target->getFd()))
+        if (!channel->isOperator(target->getFd()))
+            return;
+        if (channel->getOperatorFds().size() == 1)
         {
-            if (channel->getOperatorFds().size() == 1)
-            {
-                 std::string msg = ":ircserv NOTICE " + client.getNickname() + " :You cannot remove the last channel operator\r\n";
+                std::string msg = ":ircserv NOTICE " + client.getNickname() + " :You cannot remove the last channel operator\r\n";
                 server.sending_queue(client, msg);
                 return;
-            }
-
-            channel->remove_operator(target->getFd());
         }
+
+        channel->remove_operator(target->getFd());
     }
 
     print_modes(mode, channel_name, user_nick);
