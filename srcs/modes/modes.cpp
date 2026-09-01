@@ -41,8 +41,7 @@ void modes(Client &client, Message &message, Server &server)
         return;
     }
 
-    std::string &channel_name = message.params[0];
-    std::string &mode = message.params[1];
+    const std::string &channel_name = message.params[0];
 
     std::vector<Channel> &channels = server.getChannels();
     std::vector<Client> &clients = server.getClients();
@@ -63,195 +62,254 @@ void modes(Client &client, Message &message, Server &server)
         server.sending_queue(client, replyCmd(403, client, channel_name));
         return;
     }
-
     if (!channel->isOperator(client.getFd()))
     {
         server.sending_queue(client, replyCmd(482, client, channel_name));
         return;
     }
-
-    if (mode == "+i" || mode == "-i")
-    {
-        if (mode == "+i")
-            channel->setInvite_only(true);
-        else
-            channel->setInvite_only(false);
-
-        print_modes(mode, channel_name, "");
-
-        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + "\r\n";
-
-        notification(*channel, clients, server, msg);
-
+    if (invite_only(client, message, *channel, clients, server))
         return;
-    }
-
-    if (mode == "+t" || mode == "-t")
-    {
-        if (mode == "+t")
-            channel->set_change_topic(true);
-        else
-            channel->set_change_topic(false);
-
-        print_modes(mode, channel_name, "");
-
-        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + "\r\n";
-
-        notification(*channel, clients, server, msg);
-
+    if (let_s_change_the_topic(client, message, *channel, clients, server))
         return;
-    }
-
-    if (mode == "+k")
-    {
-        if (message.params.size() < 3)
-        {
-            server.sending_queue(client, replyCmd(461, client, "MODE"));
-            return;
-        }
-
-        std::string &key = message.params[2];
-
-        channel->set_key(key);
-
-        print_modes(mode, channel_name, key);
-
-        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " +k " + key + "\r\n";
-
-        notification(*channel, clients, server, msg);
-
+    if (secret_key(client, message, *channel, clients, server))
         return;
-    }
-
-    if (mode == "-k")
-    {
-        if (message.params.size() < 3)
-        {
-            server.sending_queue(client, replyCmd(461, client, "MODE"));
-            return;
-        }
-
-        channel->remove_key();
-
-        print_modes(mode, channel_name, "");
-
-        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " -k\r\n";
-
-        notification(*channel, clients, server, msg);
-
+    if (limited_usage(client, message, *channel, clients, server))
         return;
-    }
-
-    if (mode == "+l")
-    {
-        if (message.params.size() < 3)
-        {
-            server.sending_queue(client, replyCmd(461, client, "MODE"));
-            return;
-        }
-
-        const std::string &limit_str = message.params[2];
-        bool valid = !limit_str.empty();
-        for (size_t k = 0; k < limit_str.size() && valid; k++)
-        {
-            if (!isdigit((limit_str[k])))
-                valid = false;
-        }
-
-        if (!valid)
-        {
-            server.sending_queue(client, replyCmd(461, client, "MODE"));
-            return;
-        }
-
-        int limit = std::atoi(limit_str.c_str());
-
-        if (limit <= 0)
-        {
-            server.sending_queue(client, replyCmd(461, client, "MODE"));
-            return;
-        }
-
-        channel->set_limit(limit);
-
-        print_modes(mode, channel_name, message.params[2]);
-
-        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " +l " + message.params[2] + "\r\n";
-        notification(*channel, clients, server, msg);
+    if (operators(client, message, *channel, clients, server))
         return;
-    }
-
-    if (mode == "-l")
-    {
-        channel->remove_limit();
-        print_modes(mode, channel_name, "");
-
-        std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " -l\r\n";
-        notification(*channel, clients, server, msg);
-
-        return;
-    }
-
-    if (mode != "+o" && mode != "-o")
-    {
-        server.sending_queue(client, replyCmd(472, client, mode));
-        return;
-    }
-
-    if (message.params.size() < 3)
-    {
-        server.sending_queue(client, replyCmd(461, client, "MODE"));
-        return;
-    }
-
-    std::string &user_nick = message.params[2];
-
-    Client *target = NULL;
-
-    for (size_t i = 0; i < clients.size(); ++i)
-    {
-        if (clients[i].getNickname() == user_nick)
-        {
-            target = &clients[i];
-            break;
-        }
-    }
-
-    if (target == NULL)
-    {
-        server.sending_queue(client, replyCmd(401, client, user_nick));
-        return;
-    }
-
-    if (!channel->hasMember(target->getFd()))
-    {
-        server.sending_queue(client, replyCmd(441, client, user_nick + " " + channel_name));
-        return;
-    }
-
-    if (mode == "+o")
-    {
-        if(channel->isOperator(target->getFd()))
-            return;
-        channel->addOperator(target->getFd());
-    }
-    else
-    {
-        if (!channel->isOperator(target->getFd()))
-            return;
-        if (channel->getOperatorFds().size() == 1)
-        {
-                std::string msg = ":ircserv NOTICE " + client.getNickname() + " :You cannot remove the last channel operator\r\n";
-                server.sending_queue(client, msg);
-                return;
-        }
-
-        channel->remove_operator(target->getFd());
-    }
-
-    print_modes(mode, channel_name, user_nick);
-
-    std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + " " + user_nick + "\r\n";
-
-    notification(*channel, clients, server, msg);
+    server.sending_queue(client, replyCmd(472, client, message.params[1]));
 }
+
+
+
+
+
+
+// void modes(Client &client, Message &message, Server &server)
+// {
+//     if (!client.isRegistered())
+//     {
+//         server.sending_queue(client, replyCmd(451, client, "MODE"));
+//         return;
+//     }
+
+//     if (message.params.size() < 2)
+//     {
+//         server.sending_queue(client, replyCmd(461, client, "MODE"));
+//         return;
+//     }
+
+//     std::string &channel_name = message.params[0];
+//     std::string &mode = message.params[1];
+
+//     std::vector<Channel> &channels = server.getChannels();
+//     std::vector<Client> &clients = server.getClients();
+
+//     Channel *channel = NULL;
+
+//     for (size_t i = 0; i < channels.size(); ++i)
+//     {
+//         if (channels[i].getName() == channel_name)
+//         {
+//             channel = &channels[i];
+//             break;
+//         }
+//     }
+
+//     if (channel == NULL)
+//     {
+//         server.sending_queue(client, replyCmd(403, client, channel_name));
+//         return;
+//     }
+
+//     if (!channel->isOperator(client.getFd()))
+//     {
+//         server.sending_queue(client, replyCmd(482, client, channel_name));
+//         return;
+//     }
+
+//     if (mode == "+i" || mode == "-i")
+//     {
+//         if (mode == "+i")
+//             channel->setInvite_only(true);
+//         else
+//             channel->setInvite_only(false);
+
+//         print_modes(mode, channel_name, "");
+
+//         std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + "\r\n";
+
+//         notification(*channel, clients, server, msg);
+
+//         return;
+//     }
+
+//     if (mode == "+t" || mode == "-t")
+//     {
+//         if (mode == "+t")
+//             channel->set_change_topic(true);
+//         else
+//             channel->set_change_topic(false);
+
+//         print_modes(mode, channel_name, "");
+
+//         std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + "\r\n";
+
+//         notification(*channel, clients, server, msg);
+
+//         return;
+//     }
+
+//     if (mode == "+k")
+//     {
+//         if (message.params.size() < 3)
+//         {
+//             server.sending_queue(client, replyCmd(461, client, "MODE"));
+//             return;
+//         }
+
+//         std::string &key = message.params[2];
+
+//         channel->set_key(key);
+
+//         print_modes(mode, channel_name, key);
+
+//         std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " +k " + key + "\r\n";
+
+//         notification(*channel, clients, server, msg);
+
+//         return;
+//     }
+
+//     if (mode == "-k")
+//     {
+//         if (message.params.size() < 3)
+//         {
+//             server.sending_queue(client, replyCmd(461, client, "MODE"));
+//             return;
+//         }
+
+//         channel->remove_key();
+
+//         print_modes(mode, channel_name, "");
+
+//         std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " -k\r\n";
+
+//         notification(*channel, clients, server, msg);
+
+//         return;
+//     }
+
+//     if (mode == "+l")
+//     {
+//         if (message.params.size() < 3)
+//         {
+//             server.sending_queue(client, replyCmd(461, client, "MODE"));
+//             return;
+//         }
+
+//         const std::string &limit_str = message.params[2];
+//         bool valid = !limit_str.empty();
+//         for (size_t k = 0; k < limit_str.size() && valid; k++)
+//         {
+//             if (!isdigit((limit_str[k])))
+//                 valid = false;
+//         }
+
+//         if (!valid)
+//         {
+//             server.sending_queue(client, replyCmd(461, client, "MODE"));
+//             return;
+//         }
+
+//         int limit = std::atoi(limit_str.c_str());
+
+//         if (limit <= 0)
+//         {
+//             server.sending_queue(client, replyCmd(461, client, "MODE"));
+//             return;
+//         }
+
+//         channel->set_limit(limit);
+
+//         print_modes(mode, channel_name, message.params[2]);
+
+//         std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " +l " + message.params[2] + "\r\n";
+//         notification(*channel, clients, server, msg);
+//         return;
+//     }
+
+//     if (mode == "-l")
+//     {
+//         channel->remove_limit();
+//         print_modes(mode, channel_name, "");
+
+//         std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " -l\r\n";
+//         notification(*channel, clients, server, msg);
+
+//         return;
+//     }
+
+//     if (mode != "+o" && mode != "-o")
+//     {
+//         server.sending_queue(client, replyCmd(472, client, mode));
+//         return;
+//     }
+
+//     if (message.params.size() < 3)
+//     {
+//         server.sending_queue(client, replyCmd(461, client, "MODE"));
+//         return;
+//     }
+
+//     std::string &user_nick = message.params[2];
+
+//     Client *target = NULL;
+
+//     for (size_t i = 0; i < clients.size(); ++i)
+//     {
+//         if (clients[i].getNickname() == user_nick)
+//         {
+//             target = &clients[i];
+//             break;
+//         }
+//     }
+
+//     if (target == NULL)
+//     {
+//         server.sending_queue(client, replyCmd(401, client, user_nick));
+//         return;
+//     }
+
+//     if (!channel->hasMember(target->getFd()))
+//     {
+//         server.sending_queue(client, replyCmd(441, client, user_nick + " " + channel_name));
+//         return;
+//     }
+
+//     if (mode == "+o")
+//     {
+//         if(channel->isOperator(target->getFd()))
+//             return;
+//         channel->addOperator(target->getFd());
+//     }
+//     else
+//     {
+//         if (!channel->isOperator(target->getFd()))
+//             return;
+//         if (channel->getOperatorFds().size() == 1)
+//         {
+//                 std::string msg = ":ircserv NOTICE " + client.getNickname() + " :You cannot remove the last channel operator\r\n";
+//                 server.sending_queue(client, msg);
+//                 return;
+//         }
+
+//         channel->remove_operator(target->getFd());
+//     }
+
+//     print_modes(mode, channel_name, user_nick);
+
+//     std::string msg = ":" + client.getNickname() + " MODE " + channel_name + " " + mode + " " + user_nick + "\r\n";
+
+//     notification(*channel, clients, server, msg);
+// }

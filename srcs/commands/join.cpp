@@ -69,7 +69,8 @@ void joinHandler(Client &client, Message &message, Server &server)
             server.sending_queue(client, replyCmd(475, client, channelName));
             return;
         }
-    } // kaw
+    }
+     // kaw
     if (channel->has_limit() && static_cast<int>(channel->getMemberFds().size()) >= channel->get_limit())
     {
         server.sending_queue(client, replyCmd(471, client, channelName));
