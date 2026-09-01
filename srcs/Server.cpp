@@ -124,6 +124,9 @@ void Server::extract_msg(size_t i)
             msg.erase(msg.size() - 1);
         // Ghir messages kamlin b line ending li kaywslou l-parser.
         // std::cout << "RAW COMMAND: [" << msg << "]" << std::endl;
+        // ana li kansifet line li kteb l client mor matconnecta bash tebda
+        // lkhdema f parsing 
+                        // client            ,raw line , server
         dispatchCommand(this->clients[i - 1], msg, *this);
     }
 }

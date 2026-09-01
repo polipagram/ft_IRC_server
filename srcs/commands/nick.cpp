@@ -36,11 +36,13 @@ bool checkNickValid(const std::string& nick) {
 void nickHundler(Client &c, Message &M, Server &s) {
     // Khass client ydir PASS b nja7 qbel ma ykhtar nickname.
     if (!c.passIsRecived()) {
+        // kaw : 451 client matregistrash
         s.sending_queue(c, replyCmd(451, c, "NICK :You have not registered"));
         return;
     }
     
     if (M.params.empty()) {
+        // kaw : 431 makaynsh nickname
         s.sending_queue(c, replyCmd(431, c, ":No nickname given"));
         return;
     }
@@ -48,6 +50,7 @@ void nickHundler(Client &c, Message &M, Server &s) {
     std::string newNick = M.params[0];
     if (!checkNickValid(newNick)) {
         // kaw : fixit duplicated relpy
+        // kaw : 432 nickname ghalet
         s.sending_queue(c, replyCmd(432, c, newNick + ""));
         return;
     }
@@ -56,6 +59,7 @@ void nickHundler(Client &c, Message &M, Server &s) {
     std::vector<Client> &clients = s.getClients();
     for (size_t i = 0; i < clients.size(); ++i) {
         if (clients[i].getNickname() == newNick && clients[i].getFd() != c.getFd()) {
+            // kaw : 433 nick deja in use
             s.sending_queue(c, replyCmd(433, c, newNick));
             return;
         }
@@ -73,3 +77,6 @@ void nickHundler(Client &c, Message &M, Server &s) {
         s.sending_queue(c, replyCmd(1, c, ""));
     }
 }
+
+
+

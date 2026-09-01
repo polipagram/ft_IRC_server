@@ -78,12 +78,6 @@ void joinHandler(Client &client, Message &message, Server &server)
     const bool firstMember = channel->isEmpty();
     channel->addMember(client.getFd());
     // Awal client f channel howa operator dyalha.
-    // kaw
-    if (channel->isInvite_only() && !channel->isInvited(client.getFd()))
-    {
-        server.sending_queue(client, replyCmd(473, client, channelName));
-        return;
-    }
     if (firstMember)
         channel->addOperator(client.getFd());
 

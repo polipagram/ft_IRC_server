@@ -35,5 +35,6 @@ void dispatchCommand(Client &client, const std::string &line, Server &server)
         // client.sendMessgToClient(replyCmd(421, client, command));
         // kaw : bedelt logic dyal send finma kayna sendMessgtoClient 
         // li kenty dayer feha had function 
+        // kaw: 421 is for unknown cmd
         server.sending_queue(client, replyCmd(421, client, command)); 
 }
