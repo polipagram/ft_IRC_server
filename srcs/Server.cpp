@@ -2,7 +2,7 @@
 #include "../includes/LogicCore.hpp"
 #include <cerrno>
 
-bool _shutdown= false;
+volatile sig_atomic_t _shutdown = 0;
 
 void sig_handler(int sig)
 {
@@ -25,6 +25,8 @@ Server::Server(int port, const std::string &passwd) : fd(-1), port(port), passwd
 
 Server::~Server()
 {
+    for (size_t i = 1; i < fds.size(); i++)
+        close(fds[i].fd);
     if (this->fd != -1)
         close(fd);
 }
