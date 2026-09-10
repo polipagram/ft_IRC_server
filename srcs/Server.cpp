@@ -19,8 +19,6 @@ Server::Server(int port, const std::string &passwd) : fd(-1), port(port), passwd
     binding();
     listening();
     poll_setup();
-
-    std::cout << "socket ready to go !\n"; 
 }
 
 Server::~Server()
@@ -37,6 +35,7 @@ void Server::open_socket()
 
     if (this->fd == -1)
         throw std::runtime_error("failed to open socket!");
+
     int opt = 1;
     if(setsockopt(this->fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
     {
@@ -44,6 +43,7 @@ void Server::open_socket()
         this->fd = -1;
         throw std::runtime_error("socket option failed!");
     }
+
     if (fcntl(this->fd, F_SETFL, O_NONBLOCK) == -1)
     {
         close(this->fd);
@@ -104,7 +104,7 @@ void Server::connect()
     }
 
     struct pollfd client_poll;
-
+    
     client_poll.fd = fd_client;
     client_poll.events = POLLIN;
     client_poll.revents = 0;
@@ -113,127 +113,6 @@ void Server::connect()
     this->clients.push_back(Client(fd_client));
 
     std::cout << "New client connected: " << fd_client << std::endl;
-}
-
-void Server::extract_msg(size_t i)
-{
-    // Listening socket kaykoun f fds[0], donc client li kayqablo howa clients[i - 1].
-    std::string& buffer = this->clients[i - 1].get_buff();
-
-    size_t pos;
-
-    // Kayqbel IRC standard (\r\n) w 7ta nc li kayseft ghir \n.
-    while ((pos = buffer.find('\n')) != std::string::npos)
-    {
-        std::string msg = buffer.substr(0, pos);
-        buffer.erase(0, pos + 1);
-        // Kan7iydo \r ila line jat b CRLF qbel ma nwslo l-parser.
-        if (!msg.empty() && msg[msg.size() - 1] == '\r')
-            msg.erase(msg.size() - 1);
-        // Ghir messages kamlin b line ending li kaywslou l-parser.
-        // std::cout << "RAW COMMAND: [" << msg << "]" << std::endl;
-        // ana li kansifet line li kteb l client mor matconnecta bash tebda
-        // lkhdema f parsing 
-                        // client            ,raw line , server
-        dispatchCommand(this->clients[i - 1], msg, *this);
-    }
-}
-
-bool Server::handle_user(size_t i)
-{
-    char buffer[4006];
-
-    int bytes = recv(this->fds[i].fd, buffer, sizeof(buffer) - 1,0);
-
-    if (bytes > 0)
-    {
-        this->clients[i - 1].append_buff(std::string(buffer, bytes));
-        extract_msg(i);
-        return false;
-    }
-
-    if (bytes == 0)
-    {
-        disconnect(i);
-        return true;
-    }
-
-    // Socket non-blocking t9der matlqach data mn ba3d poll, hadchi machi error.
-    if (errno == EAGAIN || errno == EWOULDBLOCK)
-        return false;
-
-    std::cerr << "recv failed on " << this->fds[i].fd << std::endl;
-    disconnect(i);
-    return true;
-}
-
-void Server::launch()
-{
-    while (!_shutdown)
-    {
-        int polling = poll(&this->fds[0], this->fds.size(), -1);
-        if (polling == -1)
-        {
-            if (errno == EINTR)
-                continue;
-
-            throw std::runtime_error("poll failed!");
-        }
-        for (size_t i = 0; i < this->fds.size(); i++)
-        {
-            if (this->fds[i].revents == 0)
-                continue;
-
-            if (this->fds[i].fd == this->fd)
-            {
-                if (this->fds[i].revents & POLLIN)
-                    connect();
-                continue;
-            }
-
-            if (this->fds[i].revents & POLLIN)
-            {
-                if (handle_user(i))
-                {
-                    i--;
-                    continue;
-                }
-            }
-
-            // Kan7iydo socket ila lqina error, hang-up, wla descriptor maṣaliḥch.
-            if (this->fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
-            {
-                disconnect(i);
-                i--;
-                continue;
-            }
-
-            if (this->fds[i].revents & POLLOUT)
-            {
-                if (handle_send(i))
-                {
-                    i--;
-                    continue;
-                }
-            }
-        }
-    }
-    shutdown();
-}
-
-std::vector<Client> &Server::getClients()
-{
-    return clients;
-}
-
-std::vector<Channel> &Server::getChannels()
-{
-    return channels;
-}
-
-std::string Server::get_passwd() const
-{
-    return passwd;
 }
 
 void Server::disconnect(size_t i)
@@ -247,34 +126,23 @@ void Server::disconnect(size_t i)
     close(fd_client);
 
     this->fds.erase(this->fds.begin() + i);
-    // 3la 7sab l-offset bin fds w clients li mchar7 f Server.hpp.
     this->clients.erase(this->clients.begin() + (i - 1));
 }
 
-
-void Server::shutdown()
+void Server::extract_msg(size_t i)
 {
-    std::string msg = " -_- Server shutting down\r\n";
+    std::string& buffer = this->clients[i - 1].get_buff();
 
-    for (size_t i = 1; i < this->fds.size(); ++i)
+    size_t pos;
+
+    while ((pos = buffer.find('\n')) != std::string::npos)
     {
-        send(this->fds[i].fd, msg.c_str(), msg.size(), MSG_NOSIGNAL);
+        std::string msg = buffer.substr(0, pos);
+        buffer.erase(0, pos + 1);
+        if (!msg.empty() && msg[msg.size() - 1] == '\r')
+            msg.erase(msg.size() - 1);
+        dispatchCommand(this->clients[i - 1], msg, *this);
     }
-
-    while (this->fds.size() > 1)
-        disconnect(1);
-
-    this->channels.clear();
-    this->clients.clear();
-    this->fds.clear();
-
-    if (this->fd != -1)
-    {
-        close(this->fd);
-        this->fd = -1;
-    }
-
-    std::cout << " -_- Server shutting down..." << std::endl;
 }
 
 bool  Server::handle_send(size_t i)
@@ -318,6 +186,126 @@ void Server::sending_queue(Client &client, const std::string &message)
             break;
         }
     }
+}
+
+bool Server::handle_user(size_t i)
+{
+    char buffer[4006];
+
+    int bytes = recv(this->fds[i].fd, buffer, sizeof(buffer) - 1,0);
+
+    if (bytes > 0)
+    {
+        this->clients[i - 1].append_buff(std::string(buffer, bytes));
+        extract_msg(i);
+        return false;
+    }
+
+    if (bytes == 0)
+    {
+        disconnect(i);
+        return true;
+    }
+
+    if (errno == EAGAIN || errno == EWOULDBLOCK)
+    return false;
+    
+    std::cerr << "recv failed on " << this->fds[i].fd << std::endl;
+    disconnect(i);
+    return true;
+}
+
+void Server::shutdown()
+{
+    std::string msg = " -_- Server shutting down\r\n";
+
+    for (size_t i = 1; i < this->fds.size(); ++i)
+    {
+        send(this->fds[i].fd, msg.c_str(), msg.size(), MSG_NOSIGNAL);
+    }
+
+    while (this->fds.size() > 1)
+        disconnect(1);
+
+    this->channels.clear();
+    this->clients.clear();
+    this->fds.clear();
+
+    if (this->fd != -1)
+    {
+        close(this->fd);
+        this->fd = -1;
+    }
+
+    std::cout << " -_- Server shutting down..." << std::endl;
+}
+
+void Server::launch()
+{
+    while (!_shutdown)
+    {
+        int polling = poll(&this->fds[0], this->fds.size(), -1);
+        if (polling == -1)
+        {
+            if (errno == EINTR)
+                continue;
+
+            throw std::runtime_error("poll failed!");
+        }
+        for (size_t i = 0; i < this->fds.size(); i++)
+        {
+            if (this->fds[i].revents == 0)
+                continue;
+
+            if (this->fds[i].fd == this->fd)
+            {
+                if (this->fds[i].revents & POLLIN)
+                    connect();
+                continue;
+            }
+
+            if (this->fds[i].revents & POLLIN)
+            {
+                if (handle_user(i))
+                {
+                    i--;
+                    continue;
+                }
+            }
+
+            if (this->fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
+            {
+                disconnect(i);
+                i--;
+                continue;
+            }
+
+            if (this->fds[i].revents & POLLOUT)
+            {
+                if (handle_send(i))
+                {
+                    i--;
+                    continue;
+                }
+            }
+        }
+    }
+    shutdown();
+}
+
+std::vector<Client> &Server::getClients()
+{
+    return clients;
+}
+
+std::vector<Channel> &Server::getChannels()
+{
+    return channels;
+}
+
+std::string Server::get_passwd() const
+{
+    return passwd;
 }
 
 void Server::leave_chanels(int fd)
