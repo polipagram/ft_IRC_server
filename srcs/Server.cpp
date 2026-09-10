@@ -37,6 +37,7 @@ void Server::open_socket()
         throw std::runtime_error("failed to open socket!");
 
     int opt = 1;
+    
     if(setsockopt(this->fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
     {
         close(this->fd);
