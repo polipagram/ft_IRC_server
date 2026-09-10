@@ -1,6 +1,6 @@
 CC = c++
 
-FLAGS = -Wall -Wextra -Werror -std=c++98
+FLAGS = -Wall -Wextra -Werror -std=c++98 -g
 
 SRCS = srcs/Server.cpp srcs/Channel.cpp main.cpp srcs/Client.cpp srcs/parsser/Parser.cpp \
 	srcs/commands/CommandDispatcher.cpp \

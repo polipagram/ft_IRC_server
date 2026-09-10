@@ -162,7 +162,7 @@ void Channel::set_key(std::string new_key)
 
 void Channel::remove_key()
 {
-    key.clear();
+    this->key.clear();
 }
 
 bool Channel::has_limit() const

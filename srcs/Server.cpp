@@ -37,7 +37,7 @@ void Server::open_socket()
         throw std::runtime_error("failed to open socket!");
 
     int opt = 1;
-    
+
     if(setsockopt(this->fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
     {
         close(this->fd);
@@ -253,42 +253,40 @@ void Server::launch()
 
             throw std::runtime_error("poll failed!");
         }
-        for (size_t i = 0; i < this->fds.size(); i++)
+        for (size_t i = 0; i < this->fds.size();)
         {
             if (this->fds[i].revents == 0)
+            {
+                i++;
                 continue;
+            }
 
             if (this->fds[i].fd == this->fd)
             {
                 if (this->fds[i].revents & POLLIN)
                     connect();
+                i++;
                 continue;
             }
 
             if (this->fds[i].revents & POLLIN)
             {
                 if (handle_user(i))
-                {
-                    i--;
                     continue;
-                }
             }
 
             if (this->fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
             {
                 disconnect(i);
-                i--;
                 continue;
             }
 
             if (this->fds[i].revents & POLLOUT)
             {
                 if (handle_send(i))
-                {
-                    i--;
                     continue;
-                }
             }
+            i++;
         }
     }
     shutdown();
