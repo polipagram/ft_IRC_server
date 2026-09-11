@@ -7,7 +7,6 @@
 #include "Server.hpp"
 
 std::string replyCmd(int code, const Client& c, const std::string& cmd);
-// Hado homa les fonctions dyal commandes li process_command kay3ayt lihom mn ba3d parse.
 void passHundler(Client &client, Message &message, Server &server);
 void nickHundler(Client &client, Message &message, Server &server);
 void joinHandler(Client &client, Message &message, Server &server);

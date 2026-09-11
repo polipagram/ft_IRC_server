@@ -29,7 +29,6 @@ void topicHandler(Client &client, Message &message, Server &server)
         return;
     }
 
-    // TOPIC #channel bla text katsift ghir topic li kayna daba.
     if (message.params.size() == 1)
     {
         if (channel->getTopic().empty())
@@ -46,7 +45,6 @@ void topicHandler(Client &client, Message &message, Server &server)
         return;
     }
     
-    // kaw
 
     if (channel->is_change_topic() && !channel->isOperator(client.getFd()))
     {
@@ -55,12 +53,10 @@ void topicHandler(Client &client, Message &message, Server &server)
     }
 
     const std::string &newTopic = message.params[1];
-    // Topic katb9a f Channel; restriction dyal operator ghadi tzad m3a MODE +t.
     channel->setTopic(newTopic);
 
     const std::string wireMessage = ":" + client.getNickname() + " TOPIC " +
                                     channelName + " :" + newTopic + "\r\n";
-    // Kanbroadcastew l-members l-okhrin, w kan2ekdo l-sender b nafs message.
     const std::vector<int> &members = channel->getMemberFds();
     for (size_t i = 0; i < members.size(); ++i)
     {

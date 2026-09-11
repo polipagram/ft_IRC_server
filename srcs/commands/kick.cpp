@@ -55,8 +55,6 @@ void kickHandler(Client &client, Message &message, Server &server)
         server.sending_queue(client, replyCmd(441, client, targetNick + " " + channelName));
         return;
     }
-    // kaw : fixit l operator ida kan buhdo maykickeh rasso ida kan huwa buhdu li member
-    //  o ida kan huwa l operator lwahid f chnnel bash maykhrejsh oyeb9aw clients stuck
     if (channel->isOperator(target->getFd()) && channel->getOperatorFds().size() == 1 &&
         channel->getMemberFds().size() > 1)
     {
@@ -70,7 +68,6 @@ void kickHandler(Client &client, Message &message, Server &server)
     const std::string wireMessage = ":" + client.getNickname() + " KICK " + channelName +
                                     " " + targetNick + " :" + reason + "\r\n";
     const std::vector<int> members = channel->getMemberFds();
-    // Kan3lmo target w ga3 members qbel ma n7iydoh mn channel.
     for (size_t i = 0; i < members.size(); ++i)
     {
         for (size_t j = 0; j < clients.size(); ++j)

@@ -6,7 +6,6 @@
 class Client;
 class Server;
 
-// Katparsi ligne IRC w katwjehha l-handler dyal commande mnasb.
 void dispatchCommand(Client &client, const std::string &line, Server &server);
 
 #endif

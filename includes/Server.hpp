@@ -23,7 +23,6 @@ class Server
         std::string passwd;
         bool loaded;
 
-        // fds[0] howa socket li kaytsenna; ay index mn ba3d kayqabel clients[i - 1].
         std::vector<struct pollfd> fds;
         std::vector<Client> clients;
         std::vector<Channel> channels;
@@ -31,7 +30,6 @@ class Server
         void open_socket();
         void binding();
         void listening();
-        // Katdir listening socket howa awal descriptor li server kayراقبو b poll.
         void poll_setup();
         void connect();
         bool handle_user(size_t i);

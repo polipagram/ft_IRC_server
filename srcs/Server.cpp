@@ -7,7 +7,7 @@ volatile sig_atomic_t _shutdown = 0;
 void sig_handler(int sig)
 {
     if (sig == SIGINT)
-        _shutdown = true;
+        _shutdown = 1;
 }
 
 Server::Server(int port, const std::string &passwd) : fd(-1), port(port), passwd(passwd), loaded(true)
@@ -222,7 +222,14 @@ void Server::shutdown()
 
     for (size_t i = 1; i < this->fds.size(); ++i)
     {
-        send(this->fds[i].fd, msg.c_str(), msg.size(), MSG_NOSIGNAL);
+        int fd_c = this->fds[i].fd;
+        send(fd_c, msg.c_str(), msg.size(), MSG_NOSIGNAL);
+        std::cout << "Closing client fd: " << fd_c << std::endl;
+
+        if (close(fd_c) == -1)
+            std::cerr << "close failed: " << strerror(errno) << std::endl;
+        else
+            std::cout << "Client fd " << fd_c << " closed successfully" << std::endl;
     }
 
     while (this->fds.size() > 1)

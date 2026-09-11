@@ -2,7 +2,6 @@
 
 static bool validChannelName(const std::string &channelName)
 {
-    // Channel khaso ybda b # w ma ykounch fih espace, comma, wla colon.
     if (channelName.size() < 2 || channelName[0] != '#')
         return false;
 
@@ -46,7 +45,6 @@ void joinHandler(Client &client, Message &message, Server &server)
 
     if (channel == NULL)
     {
-        // JOIN kaycréyi channel ila ma kaynach.
         channels.push_back(Channel(channelName));
         channel = &channels.back();
     }
@@ -55,7 +53,6 @@ void joinHandler(Client &client, Message &message, Server &server)
         server.sending_queue(client, replyCmd(443, client, channelName));
         return;
     }
-    // kaw
     if (channel->isInvite_only() && !channel->isInvited(client.getFd()))
     {
         server.sending_queue(client, replyCmd(473, client, channelName));
@@ -70,7 +67,6 @@ void joinHandler(Client &client, Message &message, Server &server)
             return;
         }
     }
-     // kaw
     if (channel->has_limit() && static_cast<int>(channel->getMemberFds().size()) >= channel->get_limit())
     {
         server.sending_queue(client, replyCmd(471, client, channelName));
@@ -78,14 +74,12 @@ void joinHandler(Client &client, Message &message, Server &server)
     }
     const bool firstMember = channel->isEmpty();
     channel->addMember(client.getFd());
-    // Awal client f channel howa operator dyalha.
     if (firstMember)
         channel->addOperator(client.getFd());
 
     const std::string joinMessage = ":" + client.getNickname() + " JOIN :" + channelName + "\r\n";
     const std::vector<int> &members = channel->getMemberFds();
     std::vector<Client> &clients = server.getClients();
-    // JOIN khaso ywsel l-client jdid w l-ga3 members li deja f channel.
     for (size_t i = 0; i < members.size(); ++i)
     {
         for (size_t j = 0; j < clients.size(); ++j)
@@ -111,7 +105,6 @@ void joinHandler(Client &client, Message &message, Server &server)
         }
     }
 
-    // Had replies kaybeyno l-members li kaynin w fin katsali names list.
     server.sending_queue(client, ":ircserv 353 " + client.getNickname() + " = " +
                               channelName + " :" + names + "\r\n");
     server.sending_queue(client, ":ircserv 366 " + client.getNickname() + " " +

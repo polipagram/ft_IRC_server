@@ -10,14 +10,13 @@ class Channel
 private:
     std::string name;
     std::string topic;
-    // Kan7fdo fd machi pointer dyal Client, bach zyada dyal clients ma tbdelch l-members.
     std::vector<int> memberFds;
     std::vector<int> operatorFds;
     std::vector<int> invitedFds;
-    bool invite_only; // kaw
-    bool change_topic; // kaw
-    std::string key; // kaw
-    int limit; // kaw
+    bool invite_only;
+    bool change_topic;
+    std::string key;
+    int limit; 
     
     public:
     Channel(const std::string &name);
@@ -33,8 +32,8 @@ private:
     void addInvite(int fd);
     const std::string &getTopic() const;
     void setTopic(const std::string &newTopic);
-    void remove_invite(int fd); // kaw
-    void remove_operator(int fd); // kaw
+    void remove_invite(int fd); 
+    void remove_operator(int fd);
     bool isInvite_only() const;
     void setInvite_only(bool value);
     bool is_change_topic() const;

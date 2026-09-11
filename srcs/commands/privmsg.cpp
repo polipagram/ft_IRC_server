@@ -7,7 +7,6 @@ void privmsgHandler(Client &client, Message &message, Server &server)
         server.sending_queue(client, replyCmd(451, client, "PRIVMSG"));
         return;
     }
-    // PRIVMSG khaso target (user wla #channel) w text dyal message.
     if (message.params.empty())
     {
         server.sending_queue(client, replyCmd(411, client, ""));
@@ -69,6 +68,5 @@ void privmsgHandler(Client &client, Message &message, Server &server)
         return;
     }
 
-    // Message privé katsift ghir l-client li smitou f target.
     server.sending_queue(*recipient, wireMessage);
 }

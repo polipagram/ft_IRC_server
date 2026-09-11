@@ -98,7 +98,6 @@ void Channel::setTopic(const std::string &newTopic)
     topic = newTopic;
 }
 
-// kaw
 void Channel::remove_invite(int fd)
 {
     for (size_t i = 0; i < invitedFds.size(); i++)
@@ -111,7 +110,6 @@ void Channel::remove_invite(int fd)
     }
 }
 
-//kaw
 
 void Channel::remove_operator(int fd)
 {

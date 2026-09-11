@@ -7,18 +7,15 @@ class Client
 {
 private:
     int fd;
-    std::string pass; //password
-    std::string nickname; //nickname
-    std::string username; //username
-    bool passRecived; //pass
-    bool nicknameReceived; //nickname is recived
-    bool registered; //user done
-    // kaw : i need a buffer to store the line 
-    // sent by the user in it
-    std::string buffer; // client to server
-    // I think I removed this f lmerge redito :)
-    bool userRecived; // kaw
-    std::string send_buffer; // server to client
+    std::string pass;
+    std::string nickname;
+    std::string username;
+    bool passRecived;
+    bool nicknameReceived;
+    bool registered; 
+    std::string buffer;
+    bool userRecived;
+    std::string send_buffer;
 
 public:
     Client(int fd);
@@ -32,8 +29,7 @@ public:
     void setPassIsRecived(bool registered);
     void setNicknameIsReceived(bool received);
     void setUserIsRecived(bool received);
-    // Katsift reply IRC l-socket dyal had client.
-    // void sendMessgToClient(const std::string &message);
+   
     
     int getFd() const;
     const std::string &getNickname() const;
@@ -42,12 +38,11 @@ public:
     bool isRegistered() const;
     bool nicknameIsReceived() const;
     bool userIsRecived() const;
-    void append_buff(const std::string &data);  //kaw
-    std::string &get_buff(); //kaw
-    void append_send_buff(const std::string &data); //kaw
-    std::string &get_send_buff(); //kaw
-    //kantchecki beha wash clent endo maysifet mashi empty buffer
-    bool send_data() const; //kaw
+    void append_buff(const std::string &data); 
+    std::string &get_buff(); 
+    void append_send_buff(const std::string &data); 
+    std::string &get_send_buff(); 
+    bool send_data() const;
 };
 
 

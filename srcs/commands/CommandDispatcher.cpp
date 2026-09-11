@@ -9,7 +9,6 @@ void dispatchCommand(Client &client, const std::string &line, Server &server)
     Message message = Parser::parse(line);
     std::string command = message.cmd;
 
-    // Commandes IRC ma kayferr9och bin majuscule w minuscule.
     for (size_t i = 0; i < command.size(); ++i)
         command[i] = static_cast<char>(std::toupper(static_cast<unsigned char>(command[i])));
 
@@ -32,9 +31,5 @@ void dispatchCommand(Client &client, const std::string &line, Server &server)
     else if (command == "MODE")
         modes(client, message, server);
     else if (!command.empty())
-        // client.sendMessgToClient(replyCmd(421, client, command));
-        // kaw : bedelt logic dyal send finma kayna sendMessgtoClient 
-        // li kenty dayer feha had function 
-        // kaw: 421 is for unknown cmd
         server.sending_queue(client, replyCmd(421, client, command)); 
 }

@@ -52,7 +52,6 @@ void inviteHandler(Client &client, Message &message, Server &server)
         return;
     }
 
-    // Kan7fed invitation bach MODE +i ymken l-target ydkhol mn ba3d.
     channel->addInvite(target->getFd());
     server.sending_queue(*target, ":" + client.getNickname() + " INVITE " + targetNick +
                               " :" + channelName + "\r\n");
